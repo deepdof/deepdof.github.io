@@ -18,7 +18,7 @@
 
         <div class="containe-fluid">    
             <div class="text-center">
-                <br><br><h1>Lens Parameter Modeling for Depth of Field Estimtion</h1>
+                <br><br><h1>Lens Parameter Modeling for Depth of Field Estimation</h1>
                 <p class="lead">Supplementary material</p>
             </div>
 
@@ -33,10 +33,10 @@
 
                     <ol>
                         <li> <a href="#animated_compositing">Animated compositing</a>, extending fig. 10 and 11 in the paper. </li>
-                        <li> <a href="#network_architecture">Network architecture</a>, extending sec. 3.3 in the paper</li>
                         <li> <a href="#dataset_generation">Dataset generation</a>, extending sec. 3.4 in the paper</li>
                         <li> <a href="#defocus_results">Defocus qualitative results</a>, extending fig. 6 and 9 in the paper. </li>
                         <li> <a href="#disp_results">Disparity qualitative results</a>, extending fig. 7 and 9 in the paper. </li>
+                        <li> <a href="#network_architecture">Network architecture</a>, extending sec. 3.3 in the paper</li>
                     </ol>
 
                     <a class="anchor" name="network_architecture"></a>
@@ -46,880 +46,9 @@
 
                     <video src="assets/animated_insertion/insertion_comparison_v2.mp4" autoplay muted loop controls class="img-fluid"></video>
 
-                    <div class="mt-3"><p>Inserting an all-in-focus object in a defocused image leads to an inaccurate composition. While inserting the object in 2D might give adequate results if the object is small or far away, the results are unconvincing for objects spanning some sizeable part of the background image. The highlighted frame illustrates this phenomenon: the two wheels exhitbit the same amount of blur, even though the blur of the background image at these two locations is wildy different. By contrast, inserting the object in 3D enables taking into account the shape of the object, and rendering it with a physically correct defocus blur. The resulting composited image looks much more convinving, as made evident by the fact that the two wheels now show a defocus matching the background.</p></div>
+                    <div class="mt-3"><p>Inserting an all-in-focus object in a defocused image leads to an inaccurate composition. While inserting the object in 2D might give adequate results if the object is small or far away, the results are unconvincing for objects spanning some sizeable part of the background image. The highlighted frame illustrates this phenomenon: the two skateboard wheels exhitbit the same amount of blur, even though the blur of the background image at these two locations is wildy different. By contrast, inserting the object in 3D enables taking into account the shape of the object, and rendering it with a physically correct defocus blur. The resulting composited image looks much more convinving, as made evident by the fact that the two wheels now show a defocus matching the background.</p></div>
 
-                    <a class="anchor" name="network_architecture"></a>
-                    <div class="mt-5"><h3>Network architecture</h3></div>
-                    <p>We use the same architecture for the disparity and defocus modules. As the encoder, we use a <a href="https://github.com/whai362/PVT/blob/v2/classification/pvt_v2.py">Pyramid Vision Transformer</a> (PVT v2) network (<code>pvt_v2_b3</code>), where we remove the classification head. The features are passed to a modified <a href="https://github.com/NVlabs/SegFormer/blob/master/mmseg/models/decode_heads/segformer_head.py">SegFormer</a> decoder head, where the four MLPs are arranged like a U-Net architecure, and are each followed by a (3, 3) convolution layer. The outputs are then fused using a <a href="https://github.com/isl-org/MiDaS/blob/66882994a432727317267145dc3c2e47ec78c38a/midas/blocks.py#L194">FeatureFusionBlock</a> (FFB).
-                        
-                    <p>The input image is also passed through a low level encoder (LLE), consisting of a convolutional layer with a (7, 7) kernel. This output of this low level encoder is concatenated with the output of the last Feature Fusion Block, before behing passed through two (3, 3) convolution blocks (CB) and a one (1, 1) convolution layer.</p> 
-
-                    <img src="assets/architecture/network_arch.png", class="img-fluid">
-
-                    <div class="mt-3"><h4>Model summary</h4></div>
-                    <p>Here is the summary output of <code>torchinfo</code></p>
-
-                    <pre>
-
-===============================================================================================
-Layer (type:depth-idx)                        Output Shape              Param #
-===============================================================================================
-Model                                         [1, 1, 640, 640]          --
-├─pvt_v2_b3: 1-1                              [1, 64, 160, 160]         --
-│    └─OverlapPatchEmbed: 2-1                 [1, 25600, 64]            --
-│    │    └─Conv2d: 3-1                       [1, 64, 160, 160]         9,472
-│    │    └─LayerNorm: 3-2                    [1, 25600, 64]            128
-│    └─ModuleList: 2-2                        --                        --
-│    │    └─Block: 3-3                        [1, 25600, 64]            350,464
-│    │    └─Block: 3-4                        [1, 25600, 64]            350,464
-│    │    └─Block: 3-5                        [1, 25600, 64]            350,464
-│    └─LayerNorm: 2-3                         [1, 25600, 64]            128
-│    └─OverlapPatchEmbed: 2-4                 [1, 6400, 128]            --
-│    │    └─Conv2d: 3-6                       [1, 128, 80, 80]          73,856
-│    │    └─LayerNorm: 3-7                    [1, 6400, 128]            256
-│    └─ModuleList: 2-5                        --                        --
-│    │    └─Block: 3-8                        [1, 6400, 128]            602,624
-│    │    └─Block: 3-9                        [1, 6400, 128]            602,624
-│    │    └─Block: 3-10                       [1, 6400, 128]            602,624
-│    │    └─Block: 3-11                       [1, 6400, 128]            602,624
-│    └─LayerNorm: 2-6                         [1, 6400, 128]            256
-│    └─OverlapPatchEmbed: 2-7                 [1, 1600, 320]            --
-│    │    └─Conv2d: 3-12                      [1, 320, 40, 40]          368,960
-│    │    └─LayerNorm: 3-13                   [1, 1600, 320]            640
-│    └─ModuleList: 2-8                        --                        --
-│    │    └─Block: 3-14                       [1, 1600, 320]            1,656,320
-│    │    └─Block: 3-15                       [1, 1600, 320]            1,656,320
-│    │    └─Block: 3-16                       [1, 1600, 320]            1,656,320
-│    │    └─Block: 3-17                       [1, 1600, 320]            1,656,320
-│    │    └─Block: 3-18                       [1, 1600, 320]            1,656,320
-│    │    └─Block: 3-19                       [1, 1600, 320]            1,656,320
-│    │    └─Block: 3-20                       [1, 1600, 320]            1,656,320
-│    │    └─Block: 3-21                       [1, 1600, 320]            1,656,320
-│    │    └─Block: 3-22                       [1, 1600, 320]            1,656,320
-│    │    └─Block: 3-23                       [1, 1600, 320]            1,656,320
-│    │    └─Block: 3-24                       [1, 1600, 320]            1,656,320
-│    │    └─Block: 3-25                       [1, 1600, 320]            1,656,320
-│    │    └─Block: 3-26                       [1, 1600, 320]            1,656,320
-│    │    └─Block: 3-27                       [1, 1600, 320]            1,656,320
-│    │    └─Block: 3-28                       [1, 1600, 320]            1,656,320
-│    │    └─Block: 3-29                       [1, 1600, 320]            1,656,320
-│    │    └─Block: 3-30                       [1, 1600, 320]            1,656,320
-│    │    └─Block: 3-31                       [1, 1600, 320]            1,656,320
-│    └─LayerNorm: 2-9                         [1, 1600, 320]            640
-│    └─OverlapPatchEmbed: 2-10                [1, 400, 512]             --
-│    │    └─Conv2d: 3-32                      [1, 512, 20, 20]          1,475,072
-│    │    └─LayerNorm: 3-33                   [1, 400, 512]             1,024
-│    └─ModuleList: 2-11                       --                        --
-│    │    └─Block: 3-34                       [1, 400, 512]             3,172,864
-│    │    └─Block: 3-35                       [1, 400, 512]             3,172,864
-│    │    └─Block: 3-36                       [1, 400, 512]             3,172,864
-│    └─LayerNorm: 2-12                        [1, 400, 512]             1,024
-├─LowLevelEncoder: 1-2                        [1, 64, 320, 320]         --
-│    └─Conv2d: 2-13                           [1, 64, 320, 320]         9,408
-│    └─BatchNorm2d: 2-14                      [1, 64, 320, 320]         128
-│    └─ReLU: 2-15                             [1, 64, 320, 320]         --
-├─SegFormerHead2: 1-3                         [1, 1, 640, 640]          19,350
-│    └─MLP: 2-16                              [1, 400, 768]             --
-│    │    └─Linear: 3-37                      [1, 400, 768]             393,984
-│    └─Conv2d: 2-17                           [1, 256, 20, 20]          1,769,728
-│    └─FeatureFusionBlock: 2-18               [1, 256, 40, 40]          1,180,160
-│    │    └─ResidualConvUnit: 3-38            [1, 256, 20, 20]          1,180,160
-│    └─MLP: 2-19                              [1, 1600, 768]            --
-│    │    └─Linear: 3-39                      [1, 1600, 768]            246,528
-│    └─Conv2d: 2-20                           [1, 256, 40, 40]          1,769,728
-│    └─FeatureFusionBlock: 2-21               [1, 256, 80, 80]          --
-│    │    └─ResidualConvUnit: 3-40            [1, 256, 40, 40]          1,180,160
-│    │    └─ResidualConvUnit: 3-41            [1, 256, 40, 40]          1,180,160
-│    └─MLP: 2-22                              [1, 6400, 768]            --
-│    │    └─Linear: 3-42                      [1, 6400, 768]            99,072
-│    └─Conv2d: 2-23                           [1, 256, 80, 80]          1,769,728
-│    └─FeatureFusionBlock: 2-24               [1, 256, 160, 160]        --
-│    │    └─ResidualConvUnit: 3-43            [1, 256, 80, 80]          1,180,160
-│    │    └─ResidualConvUnit: 3-44            [1, 256, 80, 80]          1,180,160
-│    └─MLP: 2-25                              [1, 25600, 768]           --
-│    │    └─Linear: 3-45                      [1, 25600, 768]           49,920
-│    └─Conv2d: 2-26                           [1, 256, 160, 160]        1,769,728
-│    └─FeatureFusionBlock: 2-27               [1, 256, 320, 320]        --
-│    │    └─ResidualConvUnit: 3-46            [1, 256, 160, 160]        1,180,160
-│    │    └─ResidualConvUnit: 3-47            [1, 256, 160, 160]        1,180,160
-│    └─ConvModule: 2-28                       [1, 64, 320, 320]         --
-│    │    └─Conv2d: 3-48                      [1, 64, 320, 320]         184,384
-│    │    └─ReLU: 3-49                        [1, 64, 320, 320]         --
-│    └─ConvModule: 2-29                       [1, 32, 640, 640]         --
-│    │    └─Conv2d: 3-50                      [1, 32, 640, 640]         18,464
-│    │    └─ReLU: 3-51                        [1, 32, 640, 640]         --
-│    └─Conv2d: 2-30                           [1, 1, 640, 640]          33
-===============================================================================================
-Total params: 62,267,159
-Trainable params: 62,267,159
-Non-trainable params: 0
-Total mult-adds (G): 174.03
-===============================================================================================
-Input size (MB): 4.92
-Forward/backward pass size (MB): 3388.21
-Params size (MB): 244.27
-Estimated Total Size (MB): 3637.40
-===============================================================================================
-                    </pre>
-
-                    <div class="mt-3"><h4>Model description</h4></div>
-                    <p>Here is the model description</p>
-                    <pre>
-Model(
-  (backbone): pvt_v2_b3(
-    (patch_embed1): OverlapPatchEmbed(
-      (proj): Conv2d(3, 64, kernel_size=(7, 7), stride=(4, 4), padding=(3, 3))
-      (norm): LayerNorm((64,), eps=1e-05, elementwise_affine=True)
-    )
-    (block1): ModuleList(
-      (0): Block(
-        (norm1): LayerNorm((64,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=64, out_features=64, bias=True)
-          (kv): Linear(in_features=64, out_features=128, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=64, out_features=64, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(64, 64, kernel_size=(8, 8), stride=(8, 8))
-          (norm): LayerNorm((64,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): Identity()
-        (norm2): LayerNorm((64,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=64, out_features=512, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=512)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=512, out_features=64, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (1): Block(
-        (norm1): LayerNorm((64,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=64, out_features=64, bias=True)
-          (kv): Linear(in_features=64, out_features=128, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=64, out_features=64, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(64, 64, kernel_size=(8, 8), stride=(8, 8))
-          (norm): LayerNorm((64,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.004)
-        (norm2): LayerNorm((64,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=64, out_features=512, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=512)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=512, out_features=64, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (2): Block(
-        (norm1): LayerNorm((64,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=64, out_features=64, bias=True)
-          (kv): Linear(in_features=64, out_features=128, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=64, out_features=64, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(64, 64, kernel_size=(8, 8), stride=(8, 8))
-          (norm): LayerNorm((64,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.007)
-        (norm2): LayerNorm((64,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=64, out_features=512, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=512)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=512, out_features=64, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-    )
-    (norm1): LayerNorm((64,), eps=1e-06, elementwise_affine=True)
-    (patch_embed2): OverlapPatchEmbed(
-      (proj): Conv2d(64, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
-      (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
-    )
-    (block2): ModuleList(
-      (0): Block(
-        (norm1): LayerNorm((128,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=128, out_features=128, bias=True)
-          (kv): Linear(in_features=128, out_features=256, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=128, out_features=128, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(128, 128, kernel_size=(4, 4), stride=(4, 4))
-          (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.011)
-        (norm2): LayerNorm((128,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=128, out_features=1024, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1024, 1024, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1024)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1024, out_features=128, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (1): Block(
-        (norm1): LayerNorm((128,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=128, out_features=128, bias=True)
-          (kv): Linear(in_features=128, out_features=256, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=128, out_features=128, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(128, 128, kernel_size=(4, 4), stride=(4, 4))
-          (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.015)
-        (norm2): LayerNorm((128,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=128, out_features=1024, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1024, 1024, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1024)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1024, out_features=128, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (2): Block(
-        (norm1): LayerNorm((128,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=128, out_features=128, bias=True)
-          (kv): Linear(in_features=128, out_features=256, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=128, out_features=128, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(128, 128, kernel_size=(4, 4), stride=(4, 4))
-          (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.019)
-        (norm2): LayerNorm((128,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=128, out_features=1024, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1024, 1024, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1024)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1024, out_features=128, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (3): Block(
-        (norm1): LayerNorm((128,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=128, out_features=128, bias=True)
-          (kv): Linear(in_features=128, out_features=256, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=128, out_features=128, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(128, 128, kernel_size=(4, 4), stride=(4, 4))
-          (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.022)
-        (norm2): LayerNorm((128,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=128, out_features=1024, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1024, 1024, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1024)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1024, out_features=128, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-    )
-    (norm2): LayerNorm((128,), eps=1e-06, elementwise_affine=True)
-    (patch_embed3): OverlapPatchEmbed(
-      (proj): Conv2d(128, 320, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
-      (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
-    )
-    (block3): ModuleList(
-      (0): Block(
-        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=320, out_features=320, bias=True)
-          (kv): Linear(in_features=320, out_features=640, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=320, out_features=320, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
-          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.026)
-        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=320, out_features=1280, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1280, out_features=320, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (1): Block(
-        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=320, out_features=320, bias=True)
-          (kv): Linear(in_features=320, out_features=640, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=320, out_features=320, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
-          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.030)
-        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=320, out_features=1280, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1280, out_features=320, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (2): Block(
-        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=320, out_features=320, bias=True)
-          (kv): Linear(in_features=320, out_features=640, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=320, out_features=320, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
-          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.033)
-        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=320, out_features=1280, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1280, out_features=320, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (3): Block(
-        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=320, out_features=320, bias=True)
-          (kv): Linear(in_features=320, out_features=640, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=320, out_features=320, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
-          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.037)
-        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=320, out_features=1280, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1280, out_features=320, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (4): Block(
-        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=320, out_features=320, bias=True)
-          (kv): Linear(in_features=320, out_features=640, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=320, out_features=320, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
-          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.041)
-        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=320, out_features=1280, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1280, out_features=320, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (5): Block(
-        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=320, out_features=320, bias=True)
-          (kv): Linear(in_features=320, out_features=640, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=320, out_features=320, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
-          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.044)
-        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=320, out_features=1280, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1280, out_features=320, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (6): Block(
-        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=320, out_features=320, bias=True)
-          (kv): Linear(in_features=320, out_features=640, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=320, out_features=320, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
-          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.048)
-        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=320, out_features=1280, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1280, out_features=320, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (7): Block(
-        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=320, out_features=320, bias=True)
-          (kv): Linear(in_features=320, out_features=640, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=320, out_features=320, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
-          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.052)
-        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=320, out_features=1280, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1280, out_features=320, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (8): Block(
-        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=320, out_features=320, bias=True)
-          (kv): Linear(in_features=320, out_features=640, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=320, out_features=320, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
-          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.056)
-        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=320, out_features=1280, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1280, out_features=320, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (9): Block(
-        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=320, out_features=320, bias=True)
-          (kv): Linear(in_features=320, out_features=640, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=320, out_features=320, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
-          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.059)
-        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=320, out_features=1280, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1280, out_features=320, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (10): Block(
-        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=320, out_features=320, bias=True)
-          (kv): Linear(in_features=320, out_features=640, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=320, out_features=320, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
-          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.063)
-        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=320, out_features=1280, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1280, out_features=320, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (11): Block(
-        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=320, out_features=320, bias=True)
-          (kv): Linear(in_features=320, out_features=640, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=320, out_features=320, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
-          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.067)
-        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=320, out_features=1280, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1280, out_features=320, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (12): Block(
-        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=320, out_features=320, bias=True)
-          (kv): Linear(in_features=320, out_features=640, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=320, out_features=320, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
-          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.070)
-        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=320, out_features=1280, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1280, out_features=320, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (13): Block(
-        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=320, out_features=320, bias=True)
-          (kv): Linear(in_features=320, out_features=640, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=320, out_features=320, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
-          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.074)
-        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=320, out_features=1280, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1280, out_features=320, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (14): Block(
-        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=320, out_features=320, bias=True)
-          (kv): Linear(in_features=320, out_features=640, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=320, out_features=320, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
-          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.078)
-        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=320, out_features=1280, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1280, out_features=320, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (15): Block(
-        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=320, out_features=320, bias=True)
-          (kv): Linear(in_features=320, out_features=640, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=320, out_features=320, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
-          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.081)
-        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=320, out_features=1280, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1280, out_features=320, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (16): Block(
-        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=320, out_features=320, bias=True)
-          (kv): Linear(in_features=320, out_features=640, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=320, out_features=320, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
-          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.085)
-        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=320, out_features=1280, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1280, out_features=320, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (17): Block(
-        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=320, out_features=320, bias=True)
-          (kv): Linear(in_features=320, out_features=640, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=320, out_features=320, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
-          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
-        )
-        (drop_path): DropPath(drop_prob=0.089)
-        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=320, out_features=1280, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=1280, out_features=320, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-    )
-    (norm3): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
-    (patch_embed4): OverlapPatchEmbed(
-      (proj): Conv2d(320, 512, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
-      (norm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-    )
-    (block4): ModuleList(
-      (0): Block(
-        (norm1): LayerNorm((512,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=512, out_features=512, bias=True)
-          (kv): Linear(in_features=512, out_features=1024, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=512, out_features=512, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-        )
-        (drop_path): DropPath(drop_prob=0.093)
-        (norm2): LayerNorm((512,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=512, out_features=2048, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(2048, 2048, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=2048)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=2048, out_features=512, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (1): Block(
-        (norm1): LayerNorm((512,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=512, out_features=512, bias=True)
-          (kv): Linear(in_features=512, out_features=1024, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=512, out_features=512, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-        )
-        (drop_path): DropPath(drop_prob=0.096)
-        (norm2): LayerNorm((512,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=512, out_features=2048, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(2048, 2048, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=2048)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=2048, out_features=512, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-      (2): Block(
-        (norm1): LayerNorm((512,), eps=1e-06, elementwise_affine=True)
-        (attn): Attention(
-          (q): Linear(in_features=512, out_features=512, bias=True)
-          (kv): Linear(in_features=512, out_features=1024, bias=True)
-          (attn_drop): Dropout(p=0.0, inplace=False)
-          (proj): Linear(in_features=512, out_features=512, bias=True)
-          (proj_drop): Dropout(p=0.0, inplace=False)
-        )
-        (drop_path): DropPath(drop_prob=0.100)
-        (norm2): LayerNorm((512,), eps=1e-06, elementwise_affine=True)
-        (mlp): Mlp(
-          (fc1): Linear(in_features=512, out_features=2048, bias=True)
-          (dwconv): DWConv(
-            (dwconv): Conv2d(2048, 2048, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=2048)
-          )
-          (act): GELU(approximate=none)
-          (fc2): Linear(in_features=2048, out_features=512, bias=True)
-          (drop): Dropout(p=0.0, inplace=False)
-        )
-      )
-    )
-    (norm4): LayerNorm((512,), eps=1e-06, elementwise_affine=True)
-  )
-  (decode_head): SegFormerHead2(
-    input_transform=multiple_select, ignore_index=255, align_corners=False
-    (conv_seg): Conv2d(128, 150, kernel_size=(1, 1), stride=(1, 1))
-    (dropout): Dropout2d(p=0.1, inplace=False)
-    (linear_c4): MLP(
-      (proj): Linear(in_features=512, out_features=768, bias=True)
-    )
-    (linear_c3): MLP(
-      (proj): Linear(in_features=320, out_features=768, bias=True)
-    )
-    (linear_c2): MLP(
-      (proj): Linear(in_features=128, out_features=768, bias=True)
-    )
-    (linear_c1): MLP(
-      (proj): Linear(in_features=64, out_features=768, bias=True)
-    )
-    (linear_c4_proc): Conv2d(768, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-    (linear_c3_proc): Conv2d(768, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-    (linear_c2_proc): Conv2d(768, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-    (linear_c1_proc): Conv2d(768, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-    (fusion1): FeatureFusionBlock(
-      (resConfUnit1): ResidualConvUnit(
-        (conv1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-        (relu): ReLU(inplace=True)
-      )
-      (resConfUnit2): ResidualConvUnit(
-        (conv1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-        (relu): ReLU(inplace=True)
-      )
-    )
-    (fusion2): FeatureFusionBlock(
-      (resConfUnit1): ResidualConvUnit(
-        (conv1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-        (relu): ReLU(inplace=True)
-      )
-      (resConfUnit2): ResidualConvUnit(
-        (conv1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-        (relu): ReLU(inplace=True)
-      )
-    )
-    (fusion3): FeatureFusionBlock(
-      (resConfUnit1): ResidualConvUnit(
-        (conv1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-        (relu): ReLU(inplace=True)
-      )
-      (resConfUnit2): ResidualConvUnit(
-        (conv1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-        (relu): ReLU(inplace=True)
-      )
-    )
-    (fusion4): FeatureFusionBlock(
-      (resConfUnit1): ResidualConvUnit(
-        (conv1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-        (relu): ReLU(inplace=True)
-      )
-      (resConfUnit2): ResidualConvUnit(
-        (conv1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-        (relu): ReLU(inplace=True)
-      )
-    )
-    (conv_fuse_conv0): ConvModule(
-      (conv): Conv2d(320, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-      (activate): ReLU()
-    )
-    (conv_fuse_conv1): ConvModule(
-      (conv): Conv2d(64, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-      (activate): ReLU()
-    )
-    (linear_pred_depth_32): Conv2d(32, 1, kernel_size=(1, 1), stride=(1, 1))
-  )
-  (ll_enc): LowLevelEncoder(
-    (conv1): Conv2d(3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
-    (bn1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-    (relu): ReLU(inplace=True)
-  )
-)
-                    </pre>
-
+                    
                     <a class="anchor" name="dataset_generation"></a>
                     <div class="mt-5"><h3>Dataset generation</h3></div>
 
@@ -5846,6 +4975,878 @@ Model(
                             <div class="col"><a href="assets/disp_maps/bokehme/ours_pretr/49.jpeg"><img src="assets/disp_maps/bokehme/ours_pretr/thumbs/49.jpeg" class="img-fluid"></a></div>
                             <div class="col"><a href="assets/disp_maps/bokehme/ours/49.jpeg"><img src="assets/disp_maps/bokehme/ours/thumbs/49.jpeg" class="img-fluid"></a></div>
                         </div>
+
+                <a class="anchor" name="network_architecture"></a>
+                    <div class="mt-5"><h3>Network architecture</h3></div>
+                    <p>We use the same architecture for the disparity and defocus modules. As the encoder, we use a <a href="https://github.com/whai362/PVT/blob/v2/classification/pvt_v2.py">Pyramid Vision Transformer</a> (PVT v2) network (<code>pvt_v2_b3</code>), where we remove the classification head. The features are passed to a modified <a href="https://github.com/NVlabs/SegFormer/blob/master/mmseg/models/decode_heads/segformer_head.py">SegFormer</a> decoder head, where the four MLPs are arranged like a U-Net architecture, and are each followed by a (3, 3) convolution layer. The outputs are then fused using a <a href="https://github.com/isl-org/MiDaS/blob/66882994a432727317267145dc3c2e47ec78c38a/midas/blocks.py#L194">FeatureFusionBlock</a> (FFB).
+                        
+                    <p>The input image is also passed through a low level encoder (LLE), consisting of a convolutional layer with a (7, 7) kernel. This output of this low level encoder is concatenated with the output of the last Feature Fusion Block, before behing passed through two (3, 3) convolution blocks (CB) and a one (1, 1) convolution layer.</p> 
+
+                    <img src="assets/architecture/network_arch.png", class="img-fluid">
+
+                    <div class="mt-3"><h4>Model summary</h4></div>
+                    <p>Here is the summary output of <code>torchinfo</code></p>
+
+                    <pre>
+
+===============================================================================================
+Layer (type:depth-idx)                        Output Shape              Param #
+===============================================================================================
+Model                                         [1, 1, 640, 640]          --
+├─pvt_v2_b3: 1-1                              [1, 64, 160, 160]         --
+│    └─OverlapPatchEmbed: 2-1                 [1, 25600, 64]            --
+│    │    └─Conv2d: 3-1                       [1, 64, 160, 160]         9,472
+│    │    └─LayerNorm: 3-2                    [1, 25600, 64]            128
+│    └─ModuleList: 2-2                        --                        --
+│    │    └─Block: 3-3                        [1, 25600, 64]            350,464
+│    │    └─Block: 3-4                        [1, 25600, 64]            350,464
+│    │    └─Block: 3-5                        [1, 25600, 64]            350,464
+│    └─LayerNorm: 2-3                         [1, 25600, 64]            128
+│    └─OverlapPatchEmbed: 2-4                 [1, 6400, 128]            --
+│    │    └─Conv2d: 3-6                       [1, 128, 80, 80]          73,856
+│    │    └─LayerNorm: 3-7                    [1, 6400, 128]            256
+│    └─ModuleList: 2-5                        --                        --
+│    │    └─Block: 3-8                        [1, 6400, 128]            602,624
+│    │    └─Block: 3-9                        [1, 6400, 128]            602,624
+│    │    └─Block: 3-10                       [1, 6400, 128]            602,624
+│    │    └─Block: 3-11                       [1, 6400, 128]            602,624
+│    └─LayerNorm: 2-6                         [1, 6400, 128]            256
+│    └─OverlapPatchEmbed: 2-7                 [1, 1600, 320]            --
+│    │    └─Conv2d: 3-12                      [1, 320, 40, 40]          368,960
+│    │    └─LayerNorm: 3-13                   [1, 1600, 320]            640
+│    └─ModuleList: 2-8                        --                        --
+│    │    └─Block: 3-14                       [1, 1600, 320]            1,656,320
+│    │    └─Block: 3-15                       [1, 1600, 320]            1,656,320
+│    │    └─Block: 3-16                       [1, 1600, 320]            1,656,320
+│    │    └─Block: 3-17                       [1, 1600, 320]            1,656,320
+│    │    └─Block: 3-18                       [1, 1600, 320]            1,656,320
+│    │    └─Block: 3-19                       [1, 1600, 320]            1,656,320
+│    │    └─Block: 3-20                       [1, 1600, 320]            1,656,320
+│    │    └─Block: 3-21                       [1, 1600, 320]            1,656,320
+│    │    └─Block: 3-22                       [1, 1600, 320]            1,656,320
+│    │    └─Block: 3-23                       [1, 1600, 320]            1,656,320
+│    │    └─Block: 3-24                       [1, 1600, 320]            1,656,320
+│    │    └─Block: 3-25                       [1, 1600, 320]            1,656,320
+│    │    └─Block: 3-26                       [1, 1600, 320]            1,656,320
+│    │    └─Block: 3-27                       [1, 1600, 320]            1,656,320
+│    │    └─Block: 3-28                       [1, 1600, 320]            1,656,320
+│    │    └─Block: 3-29                       [1, 1600, 320]            1,656,320
+│    │    └─Block: 3-30                       [1, 1600, 320]            1,656,320
+│    │    └─Block: 3-31                       [1, 1600, 320]            1,656,320
+│    └─LayerNorm: 2-9                         [1, 1600, 320]            640
+│    └─OverlapPatchEmbed: 2-10                [1, 400, 512]             --
+│    │    └─Conv2d: 3-32                      [1, 512, 20, 20]          1,475,072
+│    │    └─LayerNorm: 3-33                   [1, 400, 512]             1,024
+│    └─ModuleList: 2-11                       --                        --
+│    │    └─Block: 3-34                       [1, 400, 512]             3,172,864
+│    │    └─Block: 3-35                       [1, 400, 512]             3,172,864
+│    │    └─Block: 3-36                       [1, 400, 512]             3,172,864
+│    └─LayerNorm: 2-12                        [1, 400, 512]             1,024
+├─LowLevelEncoder: 1-2                        [1, 64, 320, 320]         --
+│    └─Conv2d: 2-13                           [1, 64, 320, 320]         9,408
+│    └─BatchNorm2d: 2-14                      [1, 64, 320, 320]         128
+│    └─ReLU: 2-15                             [1, 64, 320, 320]         --
+├─SegFormerHead2: 1-3                         [1, 1, 640, 640]          19,350
+│    └─MLP: 2-16                              [1, 400, 768]             --
+│    │    └─Linear: 3-37                      [1, 400, 768]             393,984
+│    └─Conv2d: 2-17                           [1, 256, 20, 20]          1,769,728
+│    └─FeatureFusionBlock: 2-18               [1, 256, 40, 40]          1,180,160
+│    │    └─ResidualConvUnit: 3-38            [1, 256, 20, 20]          1,180,160
+│    └─MLP: 2-19                              [1, 1600, 768]            --
+│    │    └─Linear: 3-39                      [1, 1600, 768]            246,528
+│    └─Conv2d: 2-20                           [1, 256, 40, 40]          1,769,728
+│    └─FeatureFusionBlock: 2-21               [1, 256, 80, 80]          --
+│    │    └─ResidualConvUnit: 3-40            [1, 256, 40, 40]          1,180,160
+│    │    └─ResidualConvUnit: 3-41            [1, 256, 40, 40]          1,180,160
+│    └─MLP: 2-22                              [1, 6400, 768]            --
+│    │    └─Linear: 3-42                      [1, 6400, 768]            99,072
+│    └─Conv2d: 2-23                           [1, 256, 80, 80]          1,769,728
+│    └─FeatureFusionBlock: 2-24               [1, 256, 160, 160]        --
+│    │    └─ResidualConvUnit: 3-43            [1, 256, 80, 80]          1,180,160
+│    │    └─ResidualConvUnit: 3-44            [1, 256, 80, 80]          1,180,160
+│    └─MLP: 2-25                              [1, 25600, 768]           --
+│    │    └─Linear: 3-45                      [1, 25600, 768]           49,920
+│    └─Conv2d: 2-26                           [1, 256, 160, 160]        1,769,728
+│    └─FeatureFusionBlock: 2-27               [1, 256, 320, 320]        --
+│    │    └─ResidualConvUnit: 3-46            [1, 256, 160, 160]        1,180,160
+│    │    └─ResidualConvUnit: 3-47            [1, 256, 160, 160]        1,180,160
+│    └─ConvModule: 2-28                       [1, 64, 320, 320]         --
+│    │    └─Conv2d: 3-48                      [1, 64, 320, 320]         184,384
+│    │    └─ReLU: 3-49                        [1, 64, 320, 320]         --
+│    └─ConvModule: 2-29                       [1, 32, 640, 640]         --
+│    │    └─Conv2d: 3-50                      [1, 32, 640, 640]         18,464
+│    │    └─ReLU: 3-51                        [1, 32, 640, 640]         --
+│    └─Conv2d: 2-30                           [1, 1, 640, 640]          33
+===============================================================================================
+Total params: 62,267,159
+Trainable params: 62,267,159
+Non-trainable params: 0
+Total mult-adds (G): 174.03
+===============================================================================================
+Input size (MB): 4.92
+Forward/backward pass size (MB): 3388.21
+Params size (MB): 244.27
+Estimated Total Size (MB): 3637.40
+===============================================================================================
+                    </pre>
+
+                    <div class="mt-3"><h4>Model description</h4></div>
+                    <p>Here is the model description</p>
+                    <pre>
+Model(
+  (backbone): pvt_v2_b3(
+    (patch_embed1): OverlapPatchEmbed(
+      (proj): Conv2d(3, 64, kernel_size=(7, 7), stride=(4, 4), padding=(3, 3))
+      (norm): LayerNorm((64,), eps=1e-05, elementwise_affine=True)
+    )
+    (block1): ModuleList(
+      (0): Block(
+        (norm1): LayerNorm((64,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=64, out_features=64, bias=True)
+          (kv): Linear(in_features=64, out_features=128, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=64, out_features=64, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(64, 64, kernel_size=(8, 8), stride=(8, 8))
+          (norm): LayerNorm((64,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): Identity()
+        (norm2): LayerNorm((64,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=64, out_features=512, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=512)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=512, out_features=64, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (1): Block(
+        (norm1): LayerNorm((64,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=64, out_features=64, bias=True)
+          (kv): Linear(in_features=64, out_features=128, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=64, out_features=64, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(64, 64, kernel_size=(8, 8), stride=(8, 8))
+          (norm): LayerNorm((64,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.004)
+        (norm2): LayerNorm((64,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=64, out_features=512, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=512)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=512, out_features=64, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (2): Block(
+        (norm1): LayerNorm((64,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=64, out_features=64, bias=True)
+          (kv): Linear(in_features=64, out_features=128, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=64, out_features=64, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(64, 64, kernel_size=(8, 8), stride=(8, 8))
+          (norm): LayerNorm((64,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.007)
+        (norm2): LayerNorm((64,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=64, out_features=512, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=512)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=512, out_features=64, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+    )
+    (norm1): LayerNorm((64,), eps=1e-06, elementwise_affine=True)
+    (patch_embed2): OverlapPatchEmbed(
+      (proj): Conv2d(64, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
+      (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+    )
+    (block2): ModuleList(
+      (0): Block(
+        (norm1): LayerNorm((128,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=128, out_features=128, bias=True)
+          (kv): Linear(in_features=128, out_features=256, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=128, out_features=128, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(128, 128, kernel_size=(4, 4), stride=(4, 4))
+          (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.011)
+        (norm2): LayerNorm((128,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=128, out_features=1024, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1024, 1024, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1024)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1024, out_features=128, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (1): Block(
+        (norm1): LayerNorm((128,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=128, out_features=128, bias=True)
+          (kv): Linear(in_features=128, out_features=256, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=128, out_features=128, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(128, 128, kernel_size=(4, 4), stride=(4, 4))
+          (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.015)
+        (norm2): LayerNorm((128,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=128, out_features=1024, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1024, 1024, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1024)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1024, out_features=128, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (2): Block(
+        (norm1): LayerNorm((128,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=128, out_features=128, bias=True)
+          (kv): Linear(in_features=128, out_features=256, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=128, out_features=128, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(128, 128, kernel_size=(4, 4), stride=(4, 4))
+          (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.019)
+        (norm2): LayerNorm((128,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=128, out_features=1024, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1024, 1024, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1024)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1024, out_features=128, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (3): Block(
+        (norm1): LayerNorm((128,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=128, out_features=128, bias=True)
+          (kv): Linear(in_features=128, out_features=256, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=128, out_features=128, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(128, 128, kernel_size=(4, 4), stride=(4, 4))
+          (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.022)
+        (norm2): LayerNorm((128,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=128, out_features=1024, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1024, 1024, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1024)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1024, out_features=128, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+    )
+    (norm2): LayerNorm((128,), eps=1e-06, elementwise_affine=True)
+    (patch_embed3): OverlapPatchEmbed(
+      (proj): Conv2d(128, 320, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
+      (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
+    )
+    (block3): ModuleList(
+      (0): Block(
+        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=320, out_features=320, bias=True)
+          (kv): Linear(in_features=320, out_features=640, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=320, out_features=320, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
+          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.026)
+        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=320, out_features=1280, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1280, out_features=320, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (1): Block(
+        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=320, out_features=320, bias=True)
+          (kv): Linear(in_features=320, out_features=640, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=320, out_features=320, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
+          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.030)
+        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=320, out_features=1280, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1280, out_features=320, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (2): Block(
+        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=320, out_features=320, bias=True)
+          (kv): Linear(in_features=320, out_features=640, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=320, out_features=320, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
+          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.033)
+        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=320, out_features=1280, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1280, out_features=320, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (3): Block(
+        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=320, out_features=320, bias=True)
+          (kv): Linear(in_features=320, out_features=640, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=320, out_features=320, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
+          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.037)
+        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=320, out_features=1280, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1280, out_features=320, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (4): Block(
+        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=320, out_features=320, bias=True)
+          (kv): Linear(in_features=320, out_features=640, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=320, out_features=320, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
+          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.041)
+        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=320, out_features=1280, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1280, out_features=320, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (5): Block(
+        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=320, out_features=320, bias=True)
+          (kv): Linear(in_features=320, out_features=640, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=320, out_features=320, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
+          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.044)
+        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=320, out_features=1280, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1280, out_features=320, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (6): Block(
+        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=320, out_features=320, bias=True)
+          (kv): Linear(in_features=320, out_features=640, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=320, out_features=320, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
+          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.048)
+        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=320, out_features=1280, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1280, out_features=320, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (7): Block(
+        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=320, out_features=320, bias=True)
+          (kv): Linear(in_features=320, out_features=640, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=320, out_features=320, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
+          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.052)
+        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=320, out_features=1280, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1280, out_features=320, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (8): Block(
+        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=320, out_features=320, bias=True)
+          (kv): Linear(in_features=320, out_features=640, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=320, out_features=320, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
+          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.056)
+        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=320, out_features=1280, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1280, out_features=320, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (9): Block(
+        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=320, out_features=320, bias=True)
+          (kv): Linear(in_features=320, out_features=640, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=320, out_features=320, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
+          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.059)
+        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=320, out_features=1280, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1280, out_features=320, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (10): Block(
+        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=320, out_features=320, bias=True)
+          (kv): Linear(in_features=320, out_features=640, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=320, out_features=320, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
+          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.063)
+        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=320, out_features=1280, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1280, out_features=320, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (11): Block(
+        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=320, out_features=320, bias=True)
+          (kv): Linear(in_features=320, out_features=640, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=320, out_features=320, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
+          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.067)
+        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=320, out_features=1280, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1280, out_features=320, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (12): Block(
+        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=320, out_features=320, bias=True)
+          (kv): Linear(in_features=320, out_features=640, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=320, out_features=320, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
+          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.070)
+        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=320, out_features=1280, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1280, out_features=320, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (13): Block(
+        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=320, out_features=320, bias=True)
+          (kv): Linear(in_features=320, out_features=640, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=320, out_features=320, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
+          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.074)
+        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=320, out_features=1280, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1280, out_features=320, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (14): Block(
+        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=320, out_features=320, bias=True)
+          (kv): Linear(in_features=320, out_features=640, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=320, out_features=320, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
+          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.078)
+        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=320, out_features=1280, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1280, out_features=320, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (15): Block(
+        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=320, out_features=320, bias=True)
+          (kv): Linear(in_features=320, out_features=640, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=320, out_features=320, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
+          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.081)
+        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=320, out_features=1280, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1280, out_features=320, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (16): Block(
+        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=320, out_features=320, bias=True)
+          (kv): Linear(in_features=320, out_features=640, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=320, out_features=320, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
+          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.085)
+        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=320, out_features=1280, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1280, out_features=320, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (17): Block(
+        (norm1): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=320, out_features=320, bias=True)
+          (kv): Linear(in_features=320, out_features=640, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=320, out_features=320, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+          (sr): Conv2d(320, 320, kernel_size=(2, 2), stride=(2, 2))
+          (norm): LayerNorm((320,), eps=1e-05, elementwise_affine=True)
+        )
+        (drop_path): DropPath(drop_prob=0.089)
+        (norm2): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=320, out_features=1280, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(1280, 1280, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=1280)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=1280, out_features=320, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+    )
+    (norm3): LayerNorm((320,), eps=1e-06, elementwise_affine=True)
+    (patch_embed4): OverlapPatchEmbed(
+      (proj): Conv2d(320, 512, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
+      (norm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+    )
+    (block4): ModuleList(
+      (0): Block(
+        (norm1): LayerNorm((512,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=512, out_features=512, bias=True)
+          (kv): Linear(in_features=512, out_features=1024, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=512, out_features=512, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+        )
+        (drop_path): DropPath(drop_prob=0.093)
+        (norm2): LayerNorm((512,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=512, out_features=2048, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(2048, 2048, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=2048)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=2048, out_features=512, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (1): Block(
+        (norm1): LayerNorm((512,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=512, out_features=512, bias=True)
+          (kv): Linear(in_features=512, out_features=1024, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=512, out_features=512, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+        )
+        (drop_path): DropPath(drop_prob=0.096)
+        (norm2): LayerNorm((512,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=512, out_features=2048, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(2048, 2048, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=2048)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=2048, out_features=512, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (2): Block(
+        (norm1): LayerNorm((512,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (q): Linear(in_features=512, out_features=512, bias=True)
+          (kv): Linear(in_features=512, out_features=1024, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=512, out_features=512, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+        )
+        (drop_path): DropPath(drop_prob=0.100)
+        (norm2): LayerNorm((512,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=512, out_features=2048, bias=True)
+          (dwconv): DWConv(
+            (dwconv): Conv2d(2048, 2048, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=2048)
+          )
+          (act): GELU(approximate=none)
+          (fc2): Linear(in_features=2048, out_features=512, bias=True)
+          (drop): Dropout(p=0.0, inplace=False)
+        )
+      )
+    )
+    (norm4): LayerNorm((512,), eps=1e-06, elementwise_affine=True)
+  )
+  (decode_head): SegFormerHead2(
+    input_transform=multiple_select, ignore_index=255, align_corners=False
+    (conv_seg): Conv2d(128, 150, kernel_size=(1, 1), stride=(1, 1))
+    (dropout): Dropout2d(p=0.1, inplace=False)
+    (linear_c4): MLP(
+      (proj): Linear(in_features=512, out_features=768, bias=True)
+    )
+    (linear_c3): MLP(
+      (proj): Linear(in_features=320, out_features=768, bias=True)
+    )
+    (linear_c2): MLP(
+      (proj): Linear(in_features=128, out_features=768, bias=True)
+    )
+    (linear_c1): MLP(
+      (proj): Linear(in_features=64, out_features=768, bias=True)
+    )
+    (linear_c4_proc): Conv2d(768, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (linear_c3_proc): Conv2d(768, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (linear_c2_proc): Conv2d(768, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (linear_c1_proc): Conv2d(768, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (fusion1): FeatureFusionBlock(
+      (resConfUnit1): ResidualConvUnit(
+        (conv1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu): ReLU(inplace=True)
+      )
+      (resConfUnit2): ResidualConvUnit(
+        (conv1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu): ReLU(inplace=True)
+      )
+    )
+    (fusion2): FeatureFusionBlock(
+      (resConfUnit1): ResidualConvUnit(
+        (conv1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu): ReLU(inplace=True)
+      )
+      (resConfUnit2): ResidualConvUnit(
+        (conv1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu): ReLU(inplace=True)
+      )
+    )
+    (fusion3): FeatureFusionBlock(
+      (resConfUnit1): ResidualConvUnit(
+        (conv1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu): ReLU(inplace=True)
+      )
+      (resConfUnit2): ResidualConvUnit(
+        (conv1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu): ReLU(inplace=True)
+      )
+    )
+    (fusion4): FeatureFusionBlock(
+      (resConfUnit1): ResidualConvUnit(
+        (conv1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu): ReLU(inplace=True)
+      )
+      (resConfUnit2): ResidualConvUnit(
+        (conv1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu): ReLU(inplace=True)
+      )
+    )
+    (conv_fuse_conv0): ConvModule(
+      (conv): Conv2d(320, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (activate): ReLU()
+    )
+    (conv_fuse_conv1): ConvModule(
+      (conv): Conv2d(64, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (activate): ReLU()
+    )
+    (linear_pred_depth_32): Conv2d(32, 1, kernel_size=(1, 1), stride=(1, 1))
+  )
+  (ll_enc): LowLevelEncoder(
+    (conv1): Conv2d(3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+    (bn1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (relu): ReLU(inplace=True)
+  )
+)
+                    </pre>
                 </div>
         </div>
         <!-- JQuerry -->
