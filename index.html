@@ -42,11 +42,11 @@
                     <a class="anchor" name="network_architecture"></a>
                     <div class="mt-5"><h3>Animated compositing</h3></div>
 
-                    <p>Our method is the first to enable realistic compositing of virtual 3D objects in defocused images. Here, we show an animation of an inserted skateboard moving through a street image exhibiting a strong depth of field lens effect. On the left, the object is rendered using a camera with an infinitely small aperture, such that the objects shows no defocus. In the middle, we apply per-frame a uniform blur to the object, by setting the blur diameter following our estimated defocus map (like in fig. 11 of the paper). On the right, the object is inserted in 3D, using a camera with the estimated lens camera parameters (as is done in fig. 10 of the paper). The object is rendered using Blender Cycles.</p>
+                    <p>Our method is the first to enable realistic compositing of virtual 3D objects in defocused images. Here, we show an animation of an inserted skateboard moving through a street image exhibiting a strong depth of field lens effect. On the left, the object is rendered using a camera with an infinitely small aperture, such that it shows no defocus. In the middle, we apply per-frame a uniform blur to the object, by setting the blur diameter following our estimated defocus map (like in fig. 11 of the paper). On the right, the object is inserted in 3D, using a camera with the estimated lens camera parameters as is done in fig. 10 of the paper. The object is rendered using Blender Cycles.</p>
 
                     <video src="assets/animated_insertion/insertion_comparison_audio.mp4" controls class="img-fluid"></video>
 
-                    <div class="mt-3"><p>Inserting an all-in-focus object in a defocused image leads to an inaccurate composition. While inserting the object in 2D might give adequate results if the object is small or far away, the results are unconvincing for objects spanning some sizeable part of the background image. The highlighted frame illustrates this phenomenon: the two skateboard wheels exhitbit the same amount of blur, even though the blur of the background image at these two locations is wildy different. By contrast, inserting the object in 3D enables taking into account the shape of the object, and rendering it with a physically correct defocus blur. The resulting composited image looks much more convinving, as made evident by the fact that the two wheels now show a defocus matching the background.</p></div>
+                    <div class="mt-3"><p>Inserting an all-in-focus object in a defocused image leads to an inaccurate composition. While inserting the object in 2D might give adequate results if the object is small or far away, the results are unconvincing for objects spanning some sizeable part of the background image. The highlighted frame illustrates this phenomenon: the two skateboard wheels exhitbit the same amount of blur, even though the blur of the background image at these two locations is wildy different. By contrast, inserting the object in 3D enables taking into account the shape of the object, and rendering it with a physically correct defocus blur. The resulting composited image looks much more convincing, as made evident by the fact that the two wheels now show a defocus matching the background.</p></div>
 
                     
                     <a class="anchor" name="dataset_generation"></a>
@@ -55,7 +55,7 @@
                     <div class="mt-3"><h4>SynthWorld</h4></div>
                     <p>We use the physically-based renderer Blender Cycles to generate images with shallow depth of field from synthetic 3D scenes. We use 67 scenes from Evermotion, in which we manually select camera extrinsics and intrinsics by moving through the scene in the Blender walk navigation mode. We then add random deviations to the camera rotation (sampled from \(\mathcal{U}(-10°, 10°)\) for the roll, \(\mathcal{U}(-10°, 5°)\) for the pitch and \(\mathcal{U}(-10°, 10°)\) for the yaw), and we multiply the focal lenght by a random multiplicative factor sampled from \(\mathcal{U}(0.75, 2)\).</p>
                         
-                    <p>To choose a focusing depth, we start by rendering a low resolution depth map of the scene to get the minimum and maximum visible depths. We then uniformally select a depth in this range, which we set as the focusing depth. Finally, to choose a camera aperture, we sample a maximum circle of confusion size from a lognormal distribution (<code>np.random.lognormal(mean=4, sigma=1)</code>), capped at 100 px:</p>
+                    <p>To choose a focusing depth, we start by rendering a low resolution depth map of the scene to get the minimum and maximum visible depths. We then uniformly select a depth in this range, which we set as the focusing depth. Finally, to choose a camera aperture, we sample a maximum circle of confusion size from a lognormal distribution (<code>np.random.lognormal(mean=4, sigma=1)</code>), capped at 100 px:</p>
 
                     <div class="row">
                         <div class="col-4 offset-4">
@@ -63,12 +63,12 @@
                         </div>
                     </div>
 
-                    <p>From the depth map and the focal length, we can then calculate the camera aperture which will give the sampled maximum circle of confusion. We add a random environment map lighting from <a href="https://polyhaven.com/hdris">PolyHaven</a>, to which we apply a random yaw rotation between 0 and 360°. We render the image at a resolution of 1200x900 with 512 samples per pixels, before passing it through to the Blender denoiser.</p>
+                    <p>From the depth map and the focal length, we can then calculate the camera aperture which will give the sampled maximum circle of confusion. We add a random environment map lighting from <a href="https://polyhaven.com/hdris">PolyHaven</a>, to which we apply a random yaw rotation between 0 and 360°. We render the image at a resolution of 1200x900 with 512 samples per pixels, before passing it to the Blender denoiser.</p>
 
                     <p><b>This dataset will be made public upon publication of the paper.</b></p>
 
                     <div class="mt-3"><h4>BokehMe</h4></div>
-                    <p>We use the <a href="https://github.com/JuewenPeng/BokehMe">BokehMe</a> defocus synthesis method, which generates a synthetic defocus blur on real all-in-focus RGBD images. We apply it in a dataset of proprietery RGBD images, obtained using lidars, stereo cameras and iPhones. The depth maps are converted to disparity and normalized between 0-1. The BokehMe method takes as input the disparity of focus <code>disp_focus</code> and a blur parameter <code>K</code>, the latter being equivalent to half our blur factor \(\kappa \) (because they work with the radius of the circle of confusion, whereas we work with the diameter). We sample \(d_f\) uniformaly in the range [0.05, 1], and \(\kappa\) uniformally in the range [10, 100]. The ground truth (signed) defocus map can be computed from the disparity map using:
+                    <p>We use the <a href="https://github.com/JuewenPeng/BokehMe">BokehMe</a> defocus synthesis method, which generates a synthetic defocus blur on real all-in-focus RGBD images. We apply it to a dataset of proprietary RGBD images, obtained using lidars, stereo cameras and iPhones. The depth maps are converted to disparity and normalized between 0-1. The BokehMe method takes as input the disparity of focus <code>disp_focus</code> and a blur parameter <code>K</code>, the latter being equivalent to half our blur factor \(\kappa \) (because they work with the radius of the circle of confusion, whereas we work with the diameter). We sample \(d_f\) uniformly in the range [0.05, 1], and \(\kappa\) uniformly in the range [10, 100]. The ground truth (signed) defocus can be computed from the disparity using:
 
                     \[c_s = \kappa (d-d_f)\] </p>
 
@@ -3463,7 +3463,7 @@
                 <a class="anchor" name="disp_results"></a>
                 <div class="mt-5"><h3>Disparity qualitative results</h3></div>
 
-                    <p>In this section, we show additional qualitative results of disparity map estimations on all of the datasets considered in the paper, to complement fig. 7 and 9 from the paper. We show 50 images per dataset, selected at random.</p>
+                    <p>In this section, we show additional qualitative results of disparity map estimations on all of the datasets considered, to complement fig. 7 and 9 from the paper. We show 50 images per dataset, selected at random.</p>
 
                     <div class="mt-3"><h4>In the wild images</h4></div>
 
@@ -4980,7 +4980,7 @@
                     <div class="mt-5"><h3>Network architecture</h3></div>
                     <p>We use the same architecture for the disparity and defocus modules. As the encoder, we use a <a href="https://github.com/whai362/PVT/blob/v2/classification/pvt_v2.py">Pyramid Vision Transformer</a> (PVT v2) network (<code>pvt_v2_b3</code>), where we remove the classification head. The features are passed to a modified <a href="https://github.com/NVlabs/SegFormer/blob/master/mmseg/models/decode_heads/segformer_head.py">SegFormer</a> decoder head, where the four MLPs are arranged like a U-Net architecture, and are each followed by a (3, 3) convolution layer. The outputs are then fused using a <a href="https://github.com/isl-org/MiDaS/blob/66882994a432727317267145dc3c2e47ec78c38a/midas/blocks.py#L194">FeatureFusionBlock</a> (FFB).
                         
-                    <p>The input image is also passed through a low level encoder (LLE), consisting of a convolutional layer with a (7, 7) kernel. This output of this low level encoder is concatenated with the output of the last Feature Fusion Block, before behing passed through two (3, 3) convolution blocks (CB) and a one (1, 1) convolution layer.</p> 
+                    <p>The input image is also passed through a low level encoder (LLE), consisting of a convolutional layer with a (7, 7) kernel. This output of this low level encoder is concatenated with the output of the last Feature Fusion Block, before being passed through two (3, 3) convolution blocks (CB) and a one (1, 1) convolution layer.</p> 
 
                     <img src="assets/architecture/network_arch.png", class="img-fluid">
 
