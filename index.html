@@ -36,7 +36,7 @@
                         <li> <a href="#dataset_generation">Dataset generation</a>, extending sec. 4 in the paper</li>
                         <li> <a href="#disp_quant">Disparity quantitative results </a>, extending sec. 5.3 in the paper</li>
                         <li> <a href="#defocus_curves">Defocus curves</a>, extending sec. 6 in the paper</li>    
-                        <li> <a href="#defocus_results">Defocus qualitative results</a>, extending fig. 6 and 8 in the paper. </li>
+                        <li> <a href="#defocus_results">Defocus qualitative results</a>, extending fig. 6, 8 and 9 in the paper. </li>
                         <li> <a href="#disp_results">Disparity qualitative results</a>, extending fig. 7 and 8 in the paper. </li>
                         <li> <a href="#network_architecture">Network architecture</a>, extending sec. 3.3 in the paper</li>
                     </ol>
@@ -55,7 +55,7 @@
                     <div class="mt-5"><h3>Dataset generation</h3></div>
 
                     <div class="mt-3"><h4>SynthWorld</h4></div>
-                    <p>We use the physically based renderer Blender Cycles to generate images with shallow depth of field from synthetic 3D scenes. We use 67 scenes from Evermotion, in which we manually select camera extrinsics and intrinsics by moving through the scene in the Blender walk navigation mode. We then add random deviations to the camera rotation (sampled from \(\mathcal{U}(-10°, 10°)\) for the roll, \(\mathcal{U}(-10°, 5°)\) for the pitch and \(\mathcal{U}(-10°, 10°)\) for the yaw), and we multiply the focal leng by a random multiplicative factor sampled from \(\mathcal{U}(0.75, 2)\).</p>
+                    <p>We use the physically based renderer Blender Cycles to generate images with shallow depth of field from synthetic 3D scenes. We use 67 scenes from Evermotion, in which we manually select camera extrinsics and intrinsics by moving through the scene in the Blender walk navigation mode. We then add random deviations to the camera rotation (sampled from \(\mathcal{U}(-10°, 10°)\) for the roll, \(\mathcal{U}(-10°, 5°)\) for the pitch and \(\mathcal{U}(-10°, 10°)\) for the yaw), and we multiply the focal length by a random multiplicative factor sampled from \(\mathcal{U}(0.75, 2)\).</p>
                         
                     <p>To choose a focusing depth, we start by rendering a low-resolution depth map of the scene to get the minimum and maximum visible depths. We then uniformly select a depth in this range, which we set as the focusing depth. Finally, to choose a camera aperture, we sample a maximum circle of confusion size from a lognormal distribution (<code>np.random.lognormal(mean=4, sigma=1)</code>), capped at 100 px:</p>
 
@@ -477,7 +477,7 @@
                     <a class="anchor" name="defocus_results"></a>
                     <div class="mt-5"><h3>Defocus qualitative results</h3></div>
 
-                    <p>In this section, we show additional qualitative results of defocus map estimations on all of the datasets, to complement fig. 6 and 9 from the paper. We show 20 images per dataset, selected at random.</p>
+                    <p>In this section, we show additional qualitative results of defocus map estimations on all of the datasets, to complement fig. 6, 8 and 9 from the paper. We show 20 images per dataset, selected at random.</p>
                     
                     <div class="mt-3"><h4>In the wild images</h4></div>
 
@@ -1651,7 +1651,7 @@
                 <a class="anchor" name="disp_results"></a>
                 <div class="mt-5"><h3>Disparity qualitative results</h3></div>
 
-                    <p>In this section, we show additional qualitative results of disparity map estimations on all of the datasets considered, to complement fig. 7 and 9 from the paper. We show 20 images per dataset, selected at random.</p>
+                    <p>In this section, we show additional qualitative results of disparity map estimations on all of the datasets considered, to complement fig. 7 and 8 from the paper. We show 20 images per dataset, selected at random.</p>
 
                     <div class="mt-3"><h4>In the wild images</h4></div>
 
