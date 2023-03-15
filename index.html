@@ -35,7 +35,7 @@
                         <li> <a href="#animated_compositing">Animated compositing</a>, extending fig. 10 and 11 in the paper. </li>
                         <li> <a href="#dataset_generation">Dataset generation</a>, extending sec. 4 in the paper</li>
                         <li> <a href="#disp_quant">Disparity quantitative results </a>, extending sec. 5.3 in the paper</li>
-                        <li> <a href="#defocus_curves">Defocus curve</a>, extending sec. 6 in the paper</li>    
+                        <li> <a href="#defocus_curves">Defocus curves</a>, extending sec. 6 in the paper</li>    
                         <li> <a href="#defocus_results">Defocus qualitative results</a>, extending fig. 6 and 8 in the paper. </li>
                         <li> <a href="#disp_results">Disparity qualitative results</a>, extending fig. 7 and 8 in the paper. </li>
                         <li> <a href="#network_architecture">Network architecture</a>, extending sec. 3.3 in the paper</li>
@@ -153,30 +153,31 @@
                     <div class="mt-5"><h3>Defocus curve</h3></div>
 
                     <p>We show an example defocus curve, where we plot the estimated signed defocus as a function of the estimated disparity. This defocus curve can be used to recover the lens camera parameters using multiple methods, as decribed in sec. 6 of the main paper.</p>
-                    <div class="row gx-1 mt-1">
-                        <div class="col-4">
+                    
+                    <div class="row gx-1 mt-2">
+                        <div class="col">
                             <b>Image</b>
+                        </div>
+                        <div class="col">
+                            <b>Estimated disparity</b>
+                        </div>
+                        <div class="col">
+                            <b>Estimated defocus</b>
+                        </div>
+                    </div>
+                    <div class="row gx-1">
+                        <div class="col-4">
                             <a href="assets/defocus_curves/24_image.jpeg"><img src="assets/defocus_curves/24_image.jpeg" class="img-fluid"></a>
                         </div>
                         <div class="col-4">
-                            <b>Estimated disparity</b>
                             <a href="assets/defocus_curves/24_disparity.jpeg"><img src="assets/defocus_curves/24_disparity.jpeg" class="img-fluid"></a>
                         </div>
                         <div class="col-4">
-                            <b>Estimated defocus</b>
                             <a href="assets/defocus_curves/24_defocus.jpeg"><img src="assets/defocus_curves/24_defocus.jpeg" class="img-fluid"></a>
                         </div>
                     </div>
 
-                    
-
-                    <div class="row mt-3">
-                        <div class="col-10 offset-1">
-                            <a href="assets/defocus_curves/24_scatter.svg"><img src="assets/defocus_curves/24_scatter.svg" class="img-fluid"></a> 
-                        </div>
-                    </div>
-
-                    <div class="row gx-1 mt-3">
+                    <div class="row gx-1 mt-2">
                         <div class="col">
                             <b>Pixels near focus disparity</b>
                         </div>
@@ -190,7 +191,7 @@
                             <b>Weight map</b>
                         </div>
                     </div>
-                    <div class="row gx-1 mt-1">
+                    <div class="row gx-1">
                         <div class="col">
                             <a href="assets/defocus_curves/24_pixels_near.jpeg"><img src="assets/defocus_curves/24_pixels_near.jpeg" class="img-fluid"></a>
                         </div>
@@ -205,9 +206,273 @@
                         </div>
                     </div>
 
+                    <div class="row mt-2">
+                        <b>Defocus curve</b>
+                    </div>
+                    <div class="row">
+                        <div class="col-10 offset-1">
+                            <a href="assets/defocus_curves/24_scatter.svg"><img src="assets/defocus_curves/24_scatter.svg" class="img-fluid"></a> 
+                        </div>
+                    </div>
+
                     <div class="rwo mt-3">
                         <p>In this example, the ground truth focus disparity is at 0.12, towards the back the scene. However, the estimated defocus is less accurate in this part of the image (i.e., the scattered points deviate from the ground truth defocus curve, at disparities near 0). These inaccurate points influence the linear fit, reducing the accuracy of the parameters estimation. Our weight network allows to focus on pixels where the estimated defocus is the most accurate, such as edges or textures (e.g. the table tops), while discarding pixels where defocus is less noticeable (e.g. the white walls).</p>
                     </div>
+
+                    
+                    <p>We show more examples below.</p>
+
+                    <div class="row gx-1 mt-2">
+                        <div class="col">
+                            <b>Image</b>
+                        </div>
+                        <div class="col">
+                            <b>Estimated disparity</b>
+                        </div>
+                        <div class="col">
+                            <b>Estimated defocus</b>
+                        </div>
+                    </div>
+                    <div class="row gx-1">
+                        <div class="col-4">
+                            <a href="assets/defocus_curves/42_image.jpeg"><img src="assets/defocus_curves/42_image.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col-4">
+                            <a href="assets/defocus_curves/42_disparity.jpeg"><img src="assets/defocus_curves/42_disparity.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col-4">
+                            <a href="assets/defocus_curves/42_defocus.jpeg"><img src="assets/defocus_curves/42_defocus.jpeg" class="img-fluid"></a>
+                        </div>
+                    </div>
+
+                    <div class="row gx-1 mt-2">
+                        <div class="col">
+                            <b>Pixels near focus disparity</b>
+                        </div>
+                        <div class="col">
+                            <b>In focus pixels</b>
+                        </div>
+                        <div class="col">
+                            <b>RANSAC inliers</b>
+                        </div>
+                        <div class="col">
+                            <b>Weight map</b>
+                        </div>
+                    </div>
+                    <div class="row gx-1">
+                        <div class="col">
+                            <a href="assets/defocus_curves/42_pixels_near.jpeg"><img src="assets/defocus_curves/42_pixels_near.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/defocus_curves/42_in_focus.jpeg"><img src="assets/defocus_curves/42_in_focus.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/defocus_curves/42_inliers.jpeg"><img src="assets/defocus_curves/42_inliers.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/defocus_curves/42_weight.jpeg"><img src="assets/defocus_curves/42_weight.jpeg" class="img-fluid"></a>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <b>Defocus curve</b>
+                    </div>
+                    <div class="row">
+                        <div class="col-10 offset-1">
+                            <a href="assets/defocus_curves/42_scatter.svg"><img src="assets/defocus_curves/42_scatter.svg" class="img-fluid"></a> 
+                        </div>
+                    </div>
+
+
+
+
+
+                    <div class="row gx-1 mt-5">
+                        <div class="col">
+                            <b>Image</b>
+                        </div>
+                        <div class="col">
+                            <b>Estimated disparity</b>
+                        </div>
+                        <div class="col">
+                            <b>Estimated defocus</b>
+                        </div>
+                    </div>
+                    <div class="row gx-1">
+                        <div class="col-4">
+                            <a href="assets/defocus_curves/48_image.jpeg"><img src="assets/defocus_curves/48_image.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col-4">
+                            <a href="assets/defocus_curves/48_disparity.jpeg"><img src="assets/defocus_curves/48_disparity.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col-4">
+                            <a href="assets/defocus_curves/48_defocus.jpeg"><img src="assets/defocus_curves/48_defocus.jpeg" class="img-fluid"></a>
+                        </div>
+                    </div>
+
+                    <div class="row gx-1 mt-2">
+                        <div class="col">
+                            <b>Pixels near focus disparity</b>
+                        </div>
+                        <div class="col">
+                            <b>In focus pixels</b>
+                        </div>
+                        <div class="col">
+                            <b>RANSAC inliers</b>
+                        </div>
+                        <div class="col">
+                            <b>Weight map</b>
+                        </div>
+                    </div>
+                    <div class="row gx-1">
+                        <div class="col">
+                            <a href="assets/defocus_curves/48_pixels_near.jpeg"><img src="assets/defocus_curves/48_pixels_near.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/defocus_curves/48_in_focus.jpeg"><img src="assets/defocus_curves/48_in_focus.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/defocus_curves/48_inliers.jpeg"><img src="assets/defocus_curves/48_inliers.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/defocus_curves/48_weight.jpeg"><img src="assets/defocus_curves/48_weight.jpeg" class="img-fluid"></a>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <b>Defocus curve</b>
+                    </div>
+                    <div class="row">
+                        <div class="col-10 offset-1">
+                            <a href="assets/defocus_curves/48_scatter.svg"><img src="assets/defocus_curves/48_scatter.svg" class="img-fluid"></a> 
+                        </div>
+                    </div>
+
+
+
+                    <div class="row gx-1 mt-5">
+                        <div class="col">
+                            <b>Image</b>
+                        </div>
+                        <div class="col">
+                            <b>Estimated disparity</b>
+                        </div>
+                        <div class="col">
+                            <b>Estimated defocus</b>
+                        </div>
+                    </div>
+                    <div class="row gx-1">
+                        <div class="col-4">
+                            <a href="assets/defocus_curves/68_image.jpeg"><img src="assets/defocus_curves/68_image.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col-4">
+                            <a href="assets/defocus_curves/68_disparity.jpeg"><img src="assets/defocus_curves/68_disparity.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col-4">
+                            <a href="assets/defocus_curves/68_defocus.jpeg"><img src="assets/defocus_curves/68_defocus.jpeg" class="img-fluid"></a>
+                        </div>
+                    </div>
+
+                    <div class="row gx-1 mt-2">
+                        <div class="col">
+                            <b>Pixels near focus disparity</b>
+                        </div>
+                        <div class="col">
+                            <b>In focus pixels</b>
+                        </div>
+                        <div class="col">
+                            <b>RANSAC inliers</b>
+                        </div>
+                        <div class="col">
+                            <b>Weight map</b>
+                        </div>
+                    </div>
+                    <div class="row gx-1">
+                        <div class="col">
+                            <a href="assets/defocus_curves/68_pixels_near.jpeg"><img src="assets/defocus_curves/68_pixels_near.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/defocus_curves/68_in_focus.jpeg"><img src="assets/defocus_curves/68_in_focus.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/defocus_curves/68_inliers.jpeg"><img src="assets/defocus_curves/68_inliers.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/defocus_curves/68_weight.jpeg"><img src="assets/defocus_curves/68_weight.jpeg" class="img-fluid"></a>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <b>Defocus curve</b>
+                    </div>
+                    <div class="row">
+                        <div class="col-10 offset-1">
+                            <a href="assets/defocus_curves/68_scatter.svg"><img src="assets/defocus_curves/68_scatter.svg" class="img-fluid"></a> 
+                        </div>
+                    </div>
+
+
+                    <div class="row gx-1 mt-5">
+                        <div class="col">
+                            <b>Image</b>
+                        </div>
+                        <div class="col">
+                            <b>Estimated disparity</b>
+                        </div>
+                        <div class="col">
+                            <b>Estimated defocus</b>
+                        </div>
+                    </div>
+                    <div class="row gx-1">
+                        <div class="col-4">
+                            <a href="assets/defocus_curves/59_image.jpeg"><img src="assets/defocus_curves/59_image.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col-4">
+                            <a href="assets/defocus_curves/59_disparity.jpeg"><img src="assets/defocus_curves/59_disparity.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col-4">
+                            <a href="assets/defocus_curves/59_defocus.jpeg"><img src="assets/defocus_curves/59_defocus.jpeg" class="img-fluid"></a>
+                        </div>
+                    </div>
+
+                    <div class="row gx-1 mt-2">
+                        <div class="col">
+                            <b>Pixels near focus disparity</b>
+                        </div>
+                        <div class="col">
+                            <b>In focus pixels</b>
+                        </div>
+                        <div class="col">
+                            <b>RANSAC inliers</b>
+                        </div>
+                        <div class="col">
+                            <b>Weight map</b>
+                        </div>
+                    </div>
+                    <div class="row gx-1">
+                        <div class="col">
+                            <a href="assets/defocus_curves/59_pixels_near.jpeg"><img src="assets/defocus_curves/59_pixels_near.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/defocus_curves/59_in_focus.jpeg"><img src="assets/defocus_curves/59_in_focus.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/defocus_curves/59_inliers.jpeg"><img src="assets/defocus_curves/59_inliers.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/defocus_curves/59_weight.jpeg"><img src="assets/defocus_curves/59_weight.jpeg" class="img-fluid"></a>
+                        </div>
+                    </div>
+
+                    <div class="row mt-2">
+                        <b>Defocus curve</b>
+                    </div>
+                    <div class="row">
+                        <div class="col-10 offset-1">
+                            <a href="assets/defocus_curves/59_scatter.svg"><img src="assets/defocus_curves/59_scatter.svg" class="img-fluid"></a> 
+                        </div>
+                    </div>
+
 
                     <a class="anchor" name="defocus_results"></a>
                     <div class="mt-5"><h3>Defocus qualitative results</h3></div>
