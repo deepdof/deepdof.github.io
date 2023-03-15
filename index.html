@@ -48,16 +48,16 @@
 
                     <video src="assets/animated_insertion/insertion_comparison_audio.mp4" controls class="img-fluid"></video>
 
-                    <div class="mt-3"><p>Inserting an all-in-focus object in a defocused image leads to an inaccurate composition. While inserting the object in 2D might give adequate results if the object is small or far away, the results are unconvincing for objects spanning some sizeable part of the background image. The highlighted frame illustrates this phenomenon: the two skateboard wheels exhitbit the same amount of blur, even though the blur of the background image at these two locations is wildy different. By contrast, inserting the object in 3D enables taking into account the shape of the object, and rendering it with a physically correct defocus blur. The resulting composited image looks much more convincing, as made evident by the fact that the two wheels now show a defocus matching the background.</p></div>
+                    <div class="mt-3"><p>Inserting an all-in-focus object in a defocused image leads to an inaccurate composition. While inserting the object in 2D might give adequate results if the object is small or far away, the results are unconvincing for objects spanning some sizeable part of the background image. The highlighted frame illustrates this phenomenon: the two skateboard wheels exhibit the same amount of blur, even though the blur of the background image at these two locations is wildly different. By contrast, inserting the object in 3D enables taking into account the shape of the object, and rendering it with a physically correct defocus blur. The resulting composited image looks much more convincing, as made evident by the fact that the two wheels now show a defocus matching the background.</p></div>
 
                     
                     <a class="anchor" name="dataset_generation"></a>
                     <div class="mt-5"><h3>Dataset generation</h3></div>
 
                     <div class="mt-3"><h4>SynthWorld</h4></div>
-                    <p>We use the physically-based renderer Blender Cycles to generate images with shallow depth of field from synthetic 3D scenes. We use 67 scenes from Evermotion, in which we manually select camera extrinsics and intrinsics by moving through the scene in the Blender walk navigation mode. We then add random deviations to the camera rotation (sampled from \(\mathcal{U}(-10°, 10°)\) for the roll, \(\mathcal{U}(-10°, 5°)\) for the pitch and \(\mathcal{U}(-10°, 10°)\) for the yaw), and we multiply the focal lenght by a random multiplicative factor sampled from \(\mathcal{U}(0.75, 2)\).</p>
+                    <p>We use the physically based renderer Blender Cycles to generate images with shallow depth of field from synthetic 3D scenes. We use 67 scenes from Evermotion, in which we manually select camera extrinsics and intrinsics by moving through the scene in the Blender walk navigation mode. We then add random deviations to the camera rotation (sampled from \(\mathcal{U}(-10°, 10°)\) for the roll, \(\mathcal{U}(-10°, 5°)\) for the pitch and \(\mathcal{U}(-10°, 10°)\) for the yaw), and we multiply the focal leng by a random multiplicative factor sampled from \(\mathcal{U}(0.75, 2)\).</p>
                         
-                    <p>To choose a focusing depth, we start by rendering a low resolution depth map of the scene to get the minimum and maximum visible depths. We then uniformly select a depth in this range, which we set as the focusing depth. Finally, to choose a camera aperture, we sample a maximum circle of confusion size from a lognormal distribution (<code>np.random.lognormal(mean=4, sigma=1)</code>), capped at 100 px:</p>
+                    <p>To choose a focusing depth, we start by rendering a low-resolution depth map of the scene to get the minimum and maximum visible depths. We then uniformly select a depth in this range, which we set as the focusing depth. Finally, to choose a camera aperture, we sample a maximum circle of confusion size from a lognormal distribution (<code>np.random.lognormal(mean=4, sigma=1)</code>), capped at 100 px:</p>
 
                     <div class="row">
                         <div class="col-6 offset-3">
@@ -78,7 +78,7 @@
 
                     <div class="mt-3"><h4>DED</h4></div>
 
-                    <p>Images from the DED dataset are of low-resolution (613x409), and contain signifiant JPEG artifacts, as show in the left column. To alleviate this issue, we first deblock the images using <a href="https://github.com/jiaxi-jiang/FBCNN">FBCNN, a Blind JPEG Artifacts Removal network</a>. The results are shown in the middle column. We then increase the resolution by a factor of two using the Super Zoom neural filter in Adobe Photoshop. The final images, which where used to generate Table. 1, are shown in the right column.</p>
+                    <p>Images from the DED dataset are of low-resolution (613x409), and contain significant JPEG artifacts, as show in the left column. To alleviate this issue, we first deblock the images using <a href="https://github.com/jiaxi-jiang/FBCNN">FBCNN, a Blind JPEG Artifacts Removal network</a>. The results are shown in the middle column. We then increase the resolution by a factor of two using the Super Zoom neural filter in Adobe Photoshop. The final images, which were used to generate Table. 1, are shown in the right column.</p>
                     
                     <div class="row gx-1">
                         <div class="col">
@@ -147,10 +147,10 @@
                         </div>
                     </div>
 
-                    <p>While the performance of our network is consistant across all blur factors, the performance of Ours (pretrained) and MiDaS V3 decreases significantly for images with shallower depth of fields. This shows that estimating depth is more challenging on blurrier parts on images, and that finetunning on a proper set of images containing various depth of field effects significantly increases the robustness to blur.</p>
+                    <p>While the performance of our network is consistent across all blur factors, the performance of Ours (pretrained) and MiDaS V3 decreases significantly for images with shallower depth of fields. This shows that estimating depth is more challenging on blurrier parts on images, and that fine-tunning on a proper set of images containing various depth of field effects significantly increases the robustness to blur.</p>
 
                     <a class="anchor" name="defocus_curves"></a>
-                    <div class="mt-5"><h3>Defocus curve</h3></div>
+                    <div class="mt-5"><h3>Defocus curves</h3></div>
 
                     <p>We show an example defocus curve, where we plot the estimated signed defocus as a function of the estimated disparity. This defocus curve can be used to recover the lens camera parameters using multiple methods, as decribed in sec. 6 of the main paper.</p>
                     
@@ -216,7 +216,7 @@
                     </div>
 
                     <div class="rwo mt-3">
-                        <p>In this example, the ground truth focus disparity is at 0.12, towards the back the scene. However, the estimated defocus is less accurate in this part of the image (i.e., the scattered points deviate from the ground truth defocus curve, at disparities near 0). These inaccurate points influence the linear fit, reducing the accuracy of the parameters estimation. Our weight network allows to focus on pixels where the estimated defocus is the most accurate, such as edges or textures (e.g. the table tops), while discarding pixels where defocus is less noticeable (e.g. the white walls).</p>
+                        <p>In this example, the ground truth focus disparity is at 0.12, towards the back of the scene. However, the estimated defocus is less accurate in this part of the image (i.e., the scattered points deviate from the ground truth defocus curve, at disparities near 0). These inaccurate points influence the linear fit, reducing the accuracy of the parameters estimation. Our weight network allows to focus on pixels where the estimated defocus is the most accurate, such as edges or textures (e.g. the table tops), while discarding pixels where defocus is less noticeable (e.g. the white walls).</p>
                     </div>
 
                     
