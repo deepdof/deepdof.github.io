@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
-        <title>Lens Parameter Modeling for Depth of Field Estimation</title>
+        <title>Lens Parameter Estimation for Realistic Depth of Field Synthesis</title>
         <!-- Favicon-->
         <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
         <!-- Bootstrap CSS-->
@@ -18,7 +18,7 @@
 
         <div class="containe-fluid">    
             <div class="text-center">
-                <br><br><h1>Lens Parameter Modeling for Depth of Field Estimation</h1>
+                <br><br><h1>Lens Parameter Estimation for Realistic Depth of Field Synthesis</h1>
                 <p class="lead">Supplementary material</p>
             </div>
 
@@ -33,9 +33,11 @@
 
                     <ol>
                         <li> <a href="#animated_compositing">Animated compositing</a>, extending fig. 10 and 11 in the paper. </li>
-                        <li> <a href="#dataset_generation">Dataset generation</a>, extending sec. 3.4 in the paper</li>
-                        <li> <a href="#defocus_results">Defocus qualitative results</a>, extending fig. 6 and 9 in the paper. </li>
-                        <li> <a href="#disp_results">Disparity qualitative results</a>, extending fig. 7 and 9 in the paper. </li>
+                        <li> <a href="#dataset_generation">Dataset generation</a>, extending sec. 4 in the paper</li>
+                        <li> <a href="#disp_quant">Disparity quantitative results </a>, extending sec. 5.3 in the paper</li>
+                        <li> <a href="#defocus_curves">Defocus curve</a>, extending sec. 6 in the paper</li>    
+                        <li> <a href="#defocus_results">Defocus qualitative results</a>, extending fig. 6 and 8 in the paper. </li>
+                        <li> <a href="#disp_results">Disparity qualitative results</a>, extending fig. 7 and 8 in the paper. </li>
                         <li> <a href="#network_architecture">Network architecture</a>, extending sec. 3.3 in the paper</li>
                     </ol>
 
@@ -58,7 +60,7 @@
                     <p>To choose a focusing depth, we start by rendering a low resolution depth map of the scene to get the minimum and maximum visible depths. We then uniformly select a depth in this range, which we set as the focusing depth. Finally, to choose a camera aperture, we sample a maximum circle of confusion size from a lognormal distribution (<code>np.random.lognormal(mean=4, sigma=1)</code>), capped at 100 px:</p>
 
                     <div class="row">
-                        <div class="col-4 offset-4">
+                        <div class="col-6 offset-3">
                             <img src="assets/dataset_generation/coc_distribution.svg" class="img-fluid">
                         </div>
                     </div>
@@ -68,11 +70,144 @@
                     <p><b>This dataset will be made public upon publication of the paper.</b></p>
 
                     <div class="mt-3"><h4>BokehMe</h4></div>
-                    <p>We use the <a href="https://github.com/JuewenPeng/BokehMe">BokehMe</a> defocus synthesis method, which generates a synthetic defocus blur on real all-in-focus RGBD images. We apply it to a dataset of proprietary RGBD images, obtained using lidars, stereo cameras and iPhones. The depth maps are converted to disparity and normalized between 0-1. The BokehMe method takes as input the disparity of focus <code>disp_focus</code> and a blur parameter <code>K</code>, the latter being equivalent to half our blur factor \(\kappa \) (because they work with the radius of the circle of confusion, whereas we work with the diameter). We sample \(d_f\) uniformly in the range [0.05, 1], and \(\kappa\) uniformly in the range [10, 100]. The ground truth (signed) defocus can be computed from the disparity using:
+                    <p>We use the <a href="https://github.com/JuewenPeng/BokehMe">BokehMe</a> defocus synthesis method, which generates a synthetic defocus blur on real all-in-focus RGBD images. We apply it to a dataset of proprietary RGBD images, obtained using lidars, stereo cameras and iPhones, and to the <a href="https://dimlrgbd.github.io/">DIML</a> dataset. The depth maps are converted to disparity and normalized between 0-1. The BokehMe method takes as input the disparity of focus <code>disp_focus</code> and a blur parameter <code>K</code>, the latter being equivalent to half our blur factor \(\kappa \) (because they work with the radius of the circle of confusion, whereas we work with the diameter). We sample \(d_f\) uniformly in the range [0.05, 1], and \(\kappa\) uniformly in the range [10, 100]. The ground truth (signed) defocus can be computed from the disparity using:
 
                     \[c_s = \kappa (d-d_f)\] </p>
 
                     <p>Finally, we sample a random <code>gamma</code> value from \(\{3,4,5\}\), and we disable the BokehMe feature that highlights the in-focus part of the image. The code to generate this dataset will be made public upon publication of the paper.</p>
+
+                    <div class="mt-3"><h4>DED</h4></div>
+
+                    <p>Images from the DED dataset are of low-resolution (613x409), and contain signifiant JPEG artifacts, as show in the left column. To alleviate this issue, we first deblock the images using <a href="https://github.com/jiaxi-jiang/FBCNN">FBCNN, a Blind JPEG Artifacts Removal network</a>. The results are shown in the middle column. We then increase the resolution by a factor of two using the Super Zoom neural filter in Adobe Photoshop. The final images, which where used to generate Table. 1, are shown in the right column.</p>
+                    
+                    <div class="row gx-1">
+                        <div class="col">
+                            <p><b>Original image</b></p>
+                        </div>
+                        <div class="col">
+                            <p><b>Deblocked</b></p>
+                        </div>
+                        <div class="col">
+                            <p><b>Deblocked and upsampled</b></p>
+                        </div>
+                    </div>
+                    <div class="row gx-1 mt-1">
+                        <div class="col">
+                            <a href="assets/dataset_generation/ded_orig/image_0001.jpg"><img src="assets/dataset_generation/ded_orig/image_0001.jpg" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/dataset_generation/ded_deblocked/image_0001_qf_30.png"><img src="assets/dataset_generation/ded_deblocked/image_0001_qf_30.png" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/dataset_generation/ded_upsampled/image_0001_qf_30.jpg"><img src="assets/dataset_generation/ded_upsampled/image_0001_qf_30.jpg" class="img-fluid"></a>
+                        </div>
+                    </div>
+                    <div class="row gx-1 mt-1">
+                        <div class="col">
+                            <a href="assets/dataset_generation/ded_orig/image_0030.jpg"><img src="assets/dataset_generation/ded_orig/image_0030.jpg" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/dataset_generation/ded_deblocked/image_0030_qf_30.png"><img src="assets/dataset_generation/ded_deblocked/image_0030_qf_30.png" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/dataset_generation/ded_upsampled/image_0030_qf_30.jpg"><img src="assets/dataset_generation/ded_upsampled/image_0030_qf_30.jpg" class="img-fluid"></a>
+                        </div>
+                    </div>
+                    <div class="row gx-1 mt-1">
+                        <div class="col">
+                            <a href="assets/dataset_generation/ded_orig/image_0081.jpg"><img src="assets/dataset_generation/ded_orig/image_0081.jpg" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/dataset_generation/ded_deblocked/image_0081_qf_30.png"><img src="assets/dataset_generation/ded_deblocked/image_0081_qf_30.png" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/dataset_generation/ded_upsampled/image_0081_qf_30.jpg"><img src="assets/dataset_generation/ded_upsampled/image_0081_qf_30.jpg" class="img-fluid"></a>
+                        </div>
+                    </div>
+                    <div class="row gx-1 mt-1">
+                        <div class="col">
+                            <a href="assets/dataset_generation/ded_orig/image_0214.jpg"><img src="assets/dataset_generation/ded_orig/image_0214.jpg" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/dataset_generation/ded_deblocked/image_0214_qf_30.png"><img src="assets/dataset_generation/ded_deblocked/image_0214_qf_30.png" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/dataset_generation/ded_upsampled/image_0214_qf_30.jpg"><img src="assets/dataset_generation/ded_upsampled/image_0214_qf_30.jpg" class="img-fluid"></a>
+                        </div>
+                    </div>
+
+                    <a class="anchor" name="disp_quant""></a>
+                    <div class="mt-5"><h3>Disparity quantitative results</h3></div>
+
+                    <p>We show in the following figure the effect of high defocus on our disparity estimation network, compared to disparity networks trained on sharp images. The shaded areas represent one standard deviation over the mean.</p>
+
+                    <div class="row">
+                        <div class="col-6 offset-3">
+                            <img src="assets/disp_error/disp_error_vs_blur_factor.svg" class="img-fluid">
+                        </div>
+                    </div>
+
+                    <p>While the performance of our network is consistant across all blur factors, the performance of Ours (pretrained) and MiDaS V3 decreases significantly for images with shallower depth of fields. This shows that estimating depth is more challenging on blurrier parts on images, and that finetunning on a proper set of images containing various depth of field effects significantly increases the robustness to blur.</p>
+
+                    <a class="anchor" name="defocus_curves"></a>
+                    <div class="mt-5"><h3>Defocus curve</h3></div>
+
+                    <p>We show an example defocus curve, where we plot the estimated signed defocus as a function of the estimated disparity. This defocus curve can be used to recover the lens camera parameters using multiple methods, as decribed in sec. 6 of the main paper.</p>
+                    <div class="row gx-1 mt-1">
+                        <div class="col-4">
+                            <b>Image</b>
+                            <a href="assets/defocus_curves/24_image.jpeg"><img src="assets/defocus_curves/24_image.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col-4">
+                            <b>Estimated disparity</b>
+                            <a href="assets/defocus_curves/24_disparity.jpeg"><img src="assets/defocus_curves/24_disparity.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col-4">
+                            <b>Estimated defocus</b>
+                            <a href="assets/defocus_curves/24_defocus.jpeg"><img src="assets/defocus_curves/24_defocus.jpeg" class="img-fluid"></a>
+                        </div>
+                    </div>
+
+                    
+
+                    <div class="row mt-3">
+                        <div class="col-10 offset-1">
+                            <a href="assets/defocus_curves/24_scatter.svg"><img src="assets/defocus_curves/24_scatter.svg" class="img-fluid"></a> 
+                        </div>
+                    </div>
+
+                    <div class="row gx-1 mt-3">
+                        <div class="col">
+                            <b>Pixels near focus disparity</b>
+                        </div>
+                        <div class="col">
+                            <b>In focus pixels</b>
+                        </div>
+                        <div class="col">
+                            <b>RANSAC inliers</b>
+                        </div>
+                        <div class="col">
+                            <b>Weight map</b>
+                        </div>
+                    </div>
+                    <div class="row gx-1 mt-1">
+                        <div class="col">
+                            <a href="assets/defocus_curves/24_pixels_near.jpeg"><img src="assets/defocus_curves/24_pixels_near.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/defocus_curves/24_in_focus.jpeg"><img src="assets/defocus_curves/24_in_focus.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/defocus_curves/24_inliers.jpeg"><img src="assets/defocus_curves/24_inliers.jpeg" class="img-fluid"></a>
+                        </div>
+                        <div class="col">
+                            <a href="assets/defocus_curves/24_weight.jpeg"><img src="assets/defocus_curves/24_weight.jpeg" class="img-fluid"></a>
+                        </div>
+                    </div>
+
+                    <div class="rwo mt-3">
+                        <p>In this example, the ground truth focus disparity is at 0.12, towards the back the scene. However, the estimated defocus is less accurate in this part of the image (i.e., the scattered points deviate from the ground truth defocus curve, at disparities near 0). These inaccurate points influence the linear fit, reducing the accuracy of the parameters estimation. Our weight network allows to focus on pixels where the estimated defocus is the most accurate, such as edges or textures (e.g. the table tops), while discarding pixels where defocus is less noticeable (e.g. the white walls).</p>
+                    </div>
 
                     <a class="anchor" name="defocus_results"></a>
                     <div class="mt-5"><h3>Defocus qualitative results</h3></div>
@@ -81,27 +216,27 @@
                     
                     <div class="mt-3"><h4>In the wild images</h4></div>
 
-                    <div class="row">
+                    <div class="row gx-1">
                         <div class="col-md">
-                            <p>Image</p>
+                            <p><b>Image</b></p>
                         </div>
                         <div class="col-md">
-                            <p>DMENet</p>
+                            <p><b>DMENet</b></p>
                         </div>
                         <div class="col-md">
-                            <p>DBENet</p>
+                            <p><b>DBENet</b></p>
                         </div>
                         <div class="col-md">
-                            <p>DEDNet</p>
+                            <p><b>DEDNet</b></p>
                         </div>
                         <div class="col-md">
-                            <p>JDD</p>
+                            <p><b>JDD</b></p>
                         </div>
                         <div class="col-md">
-                            <p>Ours</p>
+                            <p><b>Ours</b></p>
                         </div>
                         <div class="col-md">
-                            <p>Ours, rec.</p>
+                            <p><b>Ours, rec.</b></p>
                         </div>                    
                     </div>
                     
@@ -112,7 +247,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/1.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/1.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/1.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/1.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/1.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/1.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/1.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/1.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/1.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/1.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -122,7 +257,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/2.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/2.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/2.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/2.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/2.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/2.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/2.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/2.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/2.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/2.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -132,7 +267,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/3.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/3.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/3.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/3.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/3.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/3.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/3.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/3.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/3.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/3.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -142,7 +277,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/4.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/4.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/4.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/4.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/4.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/4.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/4.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/4.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/4.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/4.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -152,7 +287,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/5.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/5.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/5.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/5.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/5.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/5.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/5.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/5.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/5.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/5.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -162,7 +297,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/6.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/6.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/6.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/6.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/6.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/6.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/6.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/6.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/6.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/6.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -172,7 +307,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/7.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/7.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/7.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/7.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/7.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/7.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/7.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/7.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/7.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/7.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -182,7 +317,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/8.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/8.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/8.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/8.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/8.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/8.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/8.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/8.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/8.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/8.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -192,7 +327,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/9.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/9.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/9.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/9.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/9.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/9.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/9.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/9.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/9.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/9.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -202,7 +337,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/10.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/10.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/10.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/10.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/10.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/10.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/10.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/10.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/10.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/10.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -212,7 +347,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/11.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/11.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/11.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/11.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/11.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/11.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/11.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/11.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/11.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/11.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -222,7 +357,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/12.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/12.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/12.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/12.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/12.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/12.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/12.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/12.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/12.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/12.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -232,7 +367,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/13.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/13.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/13.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/13.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/13.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/13.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/13.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/13.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/13.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/13.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -242,7 +377,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/14.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/14.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/14.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/14.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/14.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/14.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/14.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/14.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/14.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/14.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -252,7 +387,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/15.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/15.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/15.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/15.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/15.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/15.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/15.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/15.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/15.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/15.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -262,7 +397,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/16.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/16.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/16.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/16.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/16.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/16.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/16.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/16.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/16.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/16.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -272,7 +407,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/17.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/17.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/17.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/17.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/17.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/17.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/17.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/17.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/17.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/17.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -282,7 +417,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/18.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/18.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/18.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/18.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/18.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/18.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/18.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/18.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/18.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/18.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -292,7 +427,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/19.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/19.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/19.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/19.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/19.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/19.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/19.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/19.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/19.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/19.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -302,7 +437,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/20.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/20.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/20.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/20.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/20.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/20.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/20.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/20.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/20.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/20.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -312,7 +447,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/21.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/21.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/21.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/21.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/21.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/21.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/21.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/21.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/21.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/21.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -322,7 +457,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/22.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/22.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/22.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/22.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/22.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/22.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/22.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/22.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/22.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/22.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -332,7 +467,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/23.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/23.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/23.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/23.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/23.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/23.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/23.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/23.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/23.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/23.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -342,7 +477,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/24.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/24.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/24.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/24.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/24.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/24.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/24.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/24.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/24.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/24.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -352,7 +487,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/25.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/25.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/25.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/25.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/25.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/25.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/25.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/25.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/25.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/25.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -362,7 +497,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/26.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/26.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/26.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/26.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/26.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/26.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/26.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/26.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/26.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/26.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -372,7 +507,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/27.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/27.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/27.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/27.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/27.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/27.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/27.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/27.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/27.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/27.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -382,7 +517,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/28.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/28.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/28.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/28.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/28.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/28.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/28.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/28.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/28.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/28.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -392,7 +527,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/29.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/29.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/29.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/29.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/29.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/29.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/29.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/29.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/29.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/29.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -402,7 +537,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/30.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/30.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/30.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/30.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/30.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/30.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/30.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/30.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/30.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/30.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -412,17 +547,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/31.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/31.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/31.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/31.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/31.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/31.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/31.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/31.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/webopen/im/32.jpeg"><img src="assets/defocus_maps/webopen/im/thumbs/32.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/dme/32.jpeg"><img src="assets/defocus_maps/webopen/dme/thumbs/32.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/dbe/32.jpeg"><img src="assets/defocus_maps/webopen/dbe/thumbs/32.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ded/32.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/32.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/jdd/32.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/32.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/32.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/32.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/32.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/32.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/31.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/31.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -432,7 +557,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/33.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/33.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/33.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/33.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/33.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/33.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/33.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/33.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/33.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/33.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -442,7 +567,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/34.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/34.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/34.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/34.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/34.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/34.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/34.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/34.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/34.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/34.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -452,7 +577,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/35.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/35.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/35.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/35.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/35.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/35.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/35.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/35.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/35.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/35.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -462,7 +587,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/36.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/36.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/36.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/36.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/36.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/36.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/36.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/36.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/36.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/36.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -472,7 +597,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/37.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/37.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/37.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/37.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/37.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/37.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/37.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/37.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/37.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/37.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -482,7 +607,7 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/38.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/38.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/38.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/38.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/38.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/38.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/38.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/38.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/38.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/38.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="row gx-1 mt-1">
@@ -492,45 +617,35 @@
                         <div class="col"><a href="assets/defocus_maps/webopen/ded/39.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/39.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/jdd/39.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/39.jpeg" class="img-fluid"></a></div>
                         <div class="col"><a href="assets/defocus_maps/webopen/ours/39.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/39.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/39.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/39.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/webopen/im/40.jpeg"><img src="assets/defocus_maps/webopen/im/thumbs/40.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/dme/40.jpeg"><img src="assets/defocus_maps/webopen/dme/thumbs/40.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/dbe/40.jpeg"><img src="assets/defocus_maps/webopen/dbe/thumbs/40.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ded/40.jpeg"><img src="assets/defocus_maps/webopen/ded/thumbs/40.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/jdd/40.jpeg"><img src="assets/defocus_maps/webopen/jdd/thumbs/40.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/40.jpeg"><img src="assets/defocus_maps/webopen/ours/thumbs/40.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/webopen/ours/40.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/40.jpeg" class="img-fluid"></a></div>
+                        <div class="col"><a href="assets/defocus_maps/webopen/ours_recon/39.jpeg"><img src="assets/defocus_maps/webopen/ours_recon/thumbs/39.jpeg" class="img-fluid"></a></div>
                     </div>
 
                     <div class="mt-3"><h4>Synthworld dataset</h4></div>
 
-                    <div class="row">
+                    <div class="row gx-1">
                         <div class="col-md">
-                            <p>Image</p>
+                            <p><b>Image</b></p>
                         </div>
                         <div class="col-md">
-                            <p>Ground truth</p>
+                            <p><b>Ground truth</b></p>
                         </div>
                         <div class="col-md">
-                            <p>DMENet</p>
+                            <p><b>DMENet</b></p>
                         </div>
                         <div class="col-md">
-                            <p>DBENet</p>
+                            <p><b>DBENet</b></p>
                         </div>
                         <div class="col-md">
-                            <p>DEDNet</p>
+                            <p><b>DEDNet</b></p>
                         </div>
                         <div class="col-md">
-                            <p>JDD</p>
+                            <p><b>JDD</b></p>
                         </div>
                         <div class="col-md">
-                            <p>Ours</p>
+                            <p><b>Ours</b></p>
                         </div>
                         <div class="col-md">
-                            <p>Ours, rec.</p>
+                            <p><b>Ours, rec.</b></p>
                         </div>                    
                     </div>
 
@@ -976,30 +1091,30 @@
 
                     <div class="mt-3"><h4>BokehMe dataset</h4></div>
 
-                    <div class="row">
+                    <div class="row gx-1">
                         <div class="col-md">
-                            <p>Image</p>
+                            <p><b>Image</b></p>
                         </div>
                         <div class="col-md">
-                            <p>Ground truth</p>
+                            <p><b>Ground truth</b></p>
                         </div>
                         <div class="col-md">
-                            <p>DMENet</p>
+                            <p><b>DMENet</b></p>
                         </div>
                         <div class="col-md">
-                            <p>DBENet</p>
+                            <p><b>DBENet</b></p>
                         </div>
                         <div class="col-md">
-                            <p>DEDNet</p>
+                            <p><b>DEDNet</b></p>
                         </div>
                         <div class="col-md">
-                            <p>JDD</p>
+                            <p><b>JDD</b></p>
                         </div>
                         <div class="col-md">
-                            <p>Ours</p>
+                            <p><b>Ours</b></p>
                         </div>
                         <div class="col-md">
-                            <p>Ours, rec.</p>
+                            <p><b>Ours, rec.</b></p>
                         </div>                    
                     </div>
                     
@@ -1435,30 +1550,30 @@
 
                     <div class="mt-3"><h4>SYNDOF dataset</h4></div>
 
-                    <div class="row">
+                    <div class="row gx-1">
                         <div class="col-md">
-                            <p>Image</p>
+                            <p><b>Image</b></p>
                         </div>
                         <div class="col-md">
-                            <p>Ground truth</p>
+                            <p><b>Ground truth</b></p>
                         </div>
                         <div class="col-md">
-                            <p>DMENet</p>
+                            <p><b>DMENet</b></p>
                         </div>
                         <div class="col-md">
-                            <p>DBENet</p>
+                            <p><b>DBENet</b></p>
                         </div>
                         <div class="col-md">
-                            <p>DEDNet</p>
+                            <p><b>DEDNet</b></p>
                         </div>
                         <div class="col-md">
-                            <p>JDD</p>
+                            <p><b>JDD</b></p>
                         </div>
                         <div class="col-md">
-                            <p>Ours</p>
+                            <p><b>Ours</b></p>
                         </div>
                         <div class="col-md">
-                            <p>Ours, rec.</p>
+                            <p><b>Ours, rec.</b></p>
                         </div>                    
                     </div>
                     
@@ -1904,30 +2019,30 @@
 
                     <div class="mt-3"><h4>DED dataset</h4></div>
 
-                    <div class="row">
+                    <div class="row gx-1">
                         <div class="col-md">
-                            <p>Image</p>
+                            <p><b>Image</b></p>
                         </div>
                         <div class="col-md">
-                            <p>Ground truth</p>
+                            <p><b>Ground truth</b></p>
                         </div>
                         <div class="col-md">
-                            <p>DMENet</p>
+                            <p><b>DMENet</b></p>
                         </div>
                         <div class="col-md">
-                            <p>DBENet</p>
+                            <p><b>DBENet</b></p>
                         </div>
                         <div class="col-md">
-                            <p>DEDNet</p>
+                            <p><b>DEDNet</b></p>
                         </div>
                         <div class="col-md">
-                            <p>JDD</p>
+                            <p><b>JDD</b></p>
                         </div>
                         <div class="col-md">
-                            <p>Ours</p>
+                            <p><b>Ours</b></p>
                         </div>
                         <div class="col-md">
-                            <p>Ours, rec.</p>
+                            <p><b>Ours, rec.</b></p>
                         </div>                    
                     </div>
 
@@ -2372,486 +2487,6 @@
                         <div class="col"><a href="assets/defocus_maps/ded/ours_recon/40.jpeg"><img src="assets/defocus_maps/ded/ours_recon/thumbs/40.jpeg" class="img-fluid"></a></div>
                     </div>
 
-                    <div class="mt-3"><h4>RTF dataset</h4></div>
-
-                    <div class="row">
-                        <div class="col-md">
-                            <p>Image</p>
-                        </div>
-                        <div class="col-md">
-                            <p>Ground truth</p>
-                        </div>
-                        <div class="col-md">
-                            <p>DMENet</p>
-                        </div>
-                        <div class="col-md">
-                            <p>DBENet</p>
-                        </div>
-                        <div class="col-md">
-                            <p>DEDNet</p>
-                        </div>
-                        <div class="col-md">
-                            <p>JDD</p>
-                        </div>
-                        <div class="col-md">
-                            <p>Ours</p>
-                        </div>
-                        <div class="col-md">
-                            <p>Ours, rec.</p>
-                        </div>                    
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/1.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/1.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/1.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/1.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/1.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/1.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/1.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/1.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/1.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/1.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/1.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/1.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/1.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/1.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/1.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/1.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/1.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/1.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/1.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/1.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/1.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/1.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/1.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/1.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/1.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/1.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/1.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/1.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/1.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/1.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/1.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/1.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/2.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/2.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/2.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/2.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/2.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/2.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/2.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/2.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/2.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/2.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/2.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/2.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/2.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/2.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/2.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/2.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/3.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/3.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/3.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/3.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/3.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/3.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/3.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/3.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/3.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/3.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/3.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/3.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/3.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/3.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/3.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/3.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/4.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/4.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/4.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/4.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/4.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/4.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/4.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/4.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/4.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/4.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/4.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/4.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/4.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/4.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/4.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/4.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/5.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/5.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/5.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/5.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/5.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/5.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/5.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/5.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/5.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/5.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/5.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/5.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/5.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/5.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/5.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/5.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/6.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/6.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/6.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/6.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/6.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/6.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/6.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/6.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/6.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/6.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/6.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/6.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/6.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/6.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/6.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/6.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/7.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/7.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/7.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/7.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/7.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/7.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/7.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/7.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/7.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/7.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/7.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/7.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/7.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/7.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/7.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/7.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/8.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/8.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/8.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/8.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/8.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/8.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/8.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/8.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/8.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/8.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/8.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/8.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/8.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/8.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/8.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/8.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/9.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/9.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/9.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/9.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/9.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/9.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/9.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/9.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/9.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/9.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/9.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/9.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/9.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/9.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/9.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/9.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/10.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/10.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/10.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/10.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/10.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/10.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/10.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/10.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/10.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/10.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/10.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/10.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/10.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/10.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/10.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/10.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/11.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/11.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/11.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/11.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/11.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/11.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/11.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/11.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/11.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/11.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/11.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/11.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/11.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/11.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/11.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/11.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/12.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/12.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/12.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/12.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/12.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/12.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/12.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/12.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/12.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/12.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/12.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/12.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/12.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/12.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/12.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/12.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/13.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/13.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/13.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/13.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/13.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/13.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/13.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/13.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/13.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/13.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/13.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/13.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/13.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/13.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/13.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/13.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/14.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/14.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/14.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/14.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/14.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/14.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/14.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/14.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/14.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/14.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/14.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/14.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/14.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/14.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/14.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/14.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/15.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/15.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/15.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/15.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/15.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/15.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/15.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/15.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/15.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/15.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/15.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/15.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/15.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/15.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/15.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/15.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/16.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/16.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/16.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/16.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/16.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/16.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/16.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/16.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/16.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/16.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/16.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/16.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/16.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/16.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/16.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/16.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/17.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/17.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/17.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/17.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/17.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/17.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/17.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/17.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/17.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/17.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/17.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/17.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/17.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/17.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/17.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/17.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/18.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/18.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/18.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/18.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/18.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/18.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/18.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/18.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/18.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/18.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/18.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/18.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/18.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/18.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/18.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/18.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/19.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/19.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/19.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/19.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/19.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/19.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/19.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/19.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/19.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/19.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/19.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/19.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/19.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/19.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/19.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/19.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/20.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/20.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/20.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/20.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/20.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/20.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/20.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/20.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/20.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/20.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/20.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/20.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/20.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/20.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/20.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/20.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/21.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/21.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/21.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/21.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/21.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/21.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/21.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/21.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/21.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/21.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/21.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/21.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/21.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/21.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/21.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/21.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/22.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/22.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/22.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/22.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/22.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/22.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/22.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/22.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/22.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/22.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/22.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/22.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/22.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/22.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/22.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/22.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/23.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/23.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/23.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/23.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/23.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/23.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/23.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/23.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/23.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/23.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/23.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/23.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/23.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/23.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/23.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/23.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/24.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/24.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/24.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/24.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/24.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/24.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/24.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/24.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/24.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/24.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/24.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/24.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/24.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/24.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/24.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/24.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/25.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/25.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/25.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/25.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/25.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/25.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/25.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/25.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/25.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/25.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/25.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/25.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/25.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/25.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/25.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/25.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/26.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/26.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/26.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/26.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/26.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/26.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/26.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/26.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/26.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/26.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/26.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/26.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/26.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/26.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/26.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/26.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/27.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/27.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/27.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/27.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/27.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/27.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/27.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/27.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/27.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/27.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/27.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/27.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/27.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/27.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/27.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/27.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/28.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/28.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/28.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/28.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/28.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/28.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/28.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/28.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/28.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/28.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/28.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/28.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/28.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/28.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/28.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/28.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/29.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/29.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/29.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/29.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/29.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/29.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/29.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/29.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/29.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/29.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/29.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/29.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/29.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/29.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/29.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/29.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/30.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/30.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/30.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/30.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/30.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/30.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/30.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/30.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/30.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/30.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/30.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/30.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/30.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/30.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/30.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/30.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/31.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/31.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/31.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/31.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/31.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/31.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/31.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/31.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/31.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/31.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/31.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/31.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/31.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/31.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/31.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/31.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/32.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/32.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/32.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/32.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/32.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/32.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/32.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/32.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/32.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/32.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/32.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/32.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/32.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/32.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/32.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/32.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/33.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/33.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/33.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/33.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/33.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/33.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/33.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/33.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/33.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/33.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/33.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/33.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/33.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/33.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/33.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/33.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/34.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/34.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/34.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/34.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/34.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/34.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/34.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/34.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/34.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/34.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/34.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/34.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/34.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/34.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/34.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/34.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/35.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/35.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/35.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/35.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/35.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/35.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/35.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/35.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/35.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/35.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/35.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/35.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/35.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/35.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/35.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/35.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/36.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/36.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/36.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/36.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/36.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/36.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/36.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/36.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/36.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/36.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/36.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/36.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/36.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/36.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/36.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/36.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/37.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/37.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/37.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/37.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/37.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/37.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/37.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/37.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/37.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/37.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/37.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/37.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/37.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/37.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/37.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/37.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/38.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/38.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/38.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/38.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/38.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/38.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/38.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/38.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/38.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/38.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/38.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/38.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/38.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/38.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/38.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/38.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/39.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/39.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/39.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/39.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/39.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/39.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/39.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/39.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/39.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/39.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/39.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/39.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/39.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/39.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/39.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/39.jpeg" class="img-fluid"></a></div>
-                    </div>
-
-                    <div class="row gx-1 mt-1">
-                        <div class="col"><a href="assets/defocus_maps/rtf/im/40.jpeg"><img src="assets/defocus_maps/rtf/im/thumbs/40.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/gt/40.jpeg"><img src="assets/defocus_maps/rtf/gt/thumbs/40.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dme/40.jpeg"><img src="assets/defocus_maps/rtf/dme/thumbs/40.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/dbe/40.jpeg"><img src="assets/defocus_maps/rtf/dbe/thumbs/40.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ded/40.jpeg"><img src="assets/defocus_maps/rtf/ded/thumbs/40.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/jdd/40.jpeg"><img src="assets/defocus_maps/rtf/jdd/thumbs/40.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours/40.jpeg"><img src="assets/defocus_maps/rtf/ours/thumbs/40.jpeg" class="img-fluid"></a></div>
-                        <div class="col"><a href="assets/defocus_maps/rtf/ours_recon/40.jpeg"><img src="assets/defocus_maps/rtf/ours_recon/thumbs/40.jpeg" class="img-fluid"></a></div>
-                    </div>
 
                 <a class="anchor" name="disp_results"></a>
                 <div class="mt-5"><h3>Disparity qualitative results</h3></div>
@@ -2861,24 +2496,24 @@
                     <div class="mt-3"><h4>In the wild images</h4></div>
 
 
-                        <div class="row">
+                        <div class="row gx-1">
                             <div class="col-md">
-                                <p>Image</p>
+                                <p><b>Image</b></p>
                             </div>
                             <div class="col-md">
-                                <p>MiDaSv2 (conv.)</p>
+                                <p><b>MiDaSv2 (conv.)</b></p>
                             </div>
                             <div class="col-md">
-                                <p>MiDaSv3 (DPT)</p>
+                                <p><b>MiDaSv3 (DPT)</b></p>
                             </div>
                             <div class="col-md">
-                                <p>JDD</p>
+                                <p><b>JDD</b></p>
                             </div>
                             <div class="col-md">
-                                <p>Ours (pretr.)</p>
+                                <p><b>Ours (pretr.)</b></p>
                             </div>
                             <div class="col-md">
-                                <p>Ours</p>
+                                <p><b>Ours</b></p>
                             </div>    
                         </div>
                                     
@@ -3164,15 +2799,6 @@
                         </div>
 
                         <div class="row gx-1 mt-1">
-                            <div class="col"><a href="assets/defocus_maps/webopen/im/32.jpeg"><img src="assets/defocus_maps/webopen/im/thumbs/32.jpeg" class="img-fluid"></a></div>
-                            <div class="col"><a href="assets/disp_maps/webopen/midas/32.jpeg"><img src="assets/disp_maps/webopen/midas/thumbs/32.jpeg" class="img-fluid"></a></div>
-                            <div class="col"><a href="assets/disp_maps/webopen/dpt/32.jpeg"><img src="assets/disp_maps/webopen/dpt/thumbs/32.jpeg" class="img-fluid"></a></div>
-                            <div class="col"><a href="assets/disp_maps/webopen/jdd/32.jpeg"><img src="assets/disp_maps/webopen/jdd/thumbs/32.jpeg" class="img-fluid"></a></div>
-                            <div class="col"><a href="assets/disp_maps/webopen/ours_pretr/32.jpeg"><img src="assets/disp_maps/webopen/ours_pretr/thumbs/32.jpeg" class="img-fluid"></a></div>
-                            <div class="col"><a href="assets/disp_maps/webopen/ours/32.jpeg"><img src="assets/disp_maps/webopen/ours/thumbs/32.jpeg" class="img-fluid"></a></div>
-                        </div>
-
-                        <div class="row gx-1 mt-1">
                             <div class="col"><a href="assets/defocus_maps/webopen/im/33.jpeg"><img src="assets/defocus_maps/webopen/im/thumbs/33.jpeg" class="img-fluid"></a></div>
                             <div class="col"><a href="assets/disp_maps/webopen/midas/33.jpeg"><img src="assets/disp_maps/webopen/midas/thumbs/33.jpeg" class="img-fluid"></a></div>
                             <div class="col"><a href="assets/disp_maps/webopen/dpt/33.jpeg"><img src="assets/disp_maps/webopen/dpt/thumbs/33.jpeg" class="img-fluid"></a></div>
@@ -3237,27 +2863,27 @@
 
                         <div class="mt-3"><h4>Synthworld dataset</h4></div>
 
-                        <div class="row">
+                        <div class="row gx-1">
                             <div class="col-md">
-                                <p>Image</p>
+                                <p><b>Image</b></p>
                             </div>
                             <div class="col-md">
-                                <p>Ground truth</p>
+                                <p><b>Ground truth</b></p>
                             </div>
                             <div class="col-md">
-                                <p>MiDaSv2 (conv.)</p>
+                                <p><b>MiDaSv2 (conv.)</b></p>
                             </div>
                             <div class="col-md">
-                                <p>MiDaSv3 (DPT)</p>
+                                <p><b>MiDaSv3 (DPT</b>)</p>
                             </div>
                             <div class="col-md">
-                                <p>JDD</p>
+                                <p><b>JDD</b></p>
                             </div>
                             <div class="col-md">
-                                <p>Ours (pretr.)</p>
+                                <p><b>Ours (pretr.)</b></p>
                             </div>
                             <div class="col-md">
-                                <p>Ours</p>
+                                <p><b>Ours</b></p>
                             </div>    
                         </div>
 
@@ -3664,27 +3290,27 @@
 
                         <div class="mt-3"><h4>BokehMe dataset</h4></div>
 
-                        <div class="row">
+                        <div class="row gx-1">
                             <div class="col-md">
-                                <p>Image</p>
+                                <p><b>Image</b></p>
                             </div>
                             <div class="col-md">
-                                <p>Ground truth</p>
+                                <p><b>Ground truth</b></p>
                             </div>
                             <div class="col-md">
-                                <p>MiDaSv2 (conv.)</p>
+                                <p><b>MiDaSv2 (conv.)</b></p>
                             </div>
                             <div class="col-md">
-                                <p>MiDaSv3 (DPT)</p>
+                                <p><b>MiDaSv3 (DPT)</b></p>
                             </div>
                             <div class="col-md">
-                                <p>JDD</p>
+                                <p><b>JDD</b></p>
                             </div>
                             <div class="col-md">
-                                <p>Ours (pretr.)</p>
+                                <p><b>Ours (pretr.)</b></p>
                             </div>
                             <div class="col-md">
-                                <p>Ours</p>
+                                <p><b>Ours</b></p>
                             </div>    
                         </div>
 
