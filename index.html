@@ -34,6 +34,7 @@
                     <ol>
                         <li> <a href="#animated_compositing">Animated compositing</a>, extending fig. 10 and 11 in the paper. </li>
                         <li> <a href="#dataset_generation">Dataset generation</a>, extending sec. 4 in the paper</li>
+                        <li> <a href="#defocus_quant">Defocus quantitative results </a>, extending sec. 5.2 in the paper</li>
                         <li> <a href="#disp_quant">Disparity quantitative results </a>, extending sec. 5.3 in the paper</li>
                         <li> <a href="#defocus_curves">Defocus curves</a>, extending sec. 6 in the paper</li>    
                         <li> <a href="#defocus_results">Defocus qualitative results</a>, extending fig. 6, 8 and 9 in the paper. </li>
@@ -91,7 +92,7 @@
                             <p><b>Deblocked and upsampled</b></p>
                         </div>
                     </div>
-                    <div class="row gx-1 mt-1">
+                    <div class="row gx-1">
                         <div class="col">
                             <a href="assets/dataset_generation/ded_orig/image_0001.jpg"><img src="assets/dataset_generation/ded_orig/image_0001.jpg" class="img-fluid"></a>
                         </div>
@@ -135,6 +136,16 @@
                             <a href="assets/dataset_generation/ded_upsampled/image_0214_qf_30.jpg"><img src="assets/dataset_generation/ded_upsampled/image_0214_qf_30.jpg" class="img-fluid"></a>
                         </div>
                     </div>
+
+                    <a class="anchor" name="defocus_quant"></a>
+                    <div class="mt-5"><h3>Defocus quantitative results</h3></div>
+
+                    <p>We show in the following figure the effect of the blur factor \(\kappa\) on the defocus estimation error. The blue curve on the figure shows that the defocus errors (in pixels) increases for images with a wider aperture. However, when normalizing by the blur factor (to account for the fact that an error of 1 px is less worrisome on a blurrier image), we observe that the error is mostly constant across apertures, albeit slightly higher on sharper images.</p>
+
+                    <div class="row">
+                        <div class="col-6 offset-3">
+                            <img src="assets/defocus_error/coc_error_vs_blur_factor.svg" class="img-fluid">
+                        </div>
 
                     <a class="anchor" name="disp_quant""></a>
                     <div class="mt-5"><h3>Disparity quantitative results</h3></div>
